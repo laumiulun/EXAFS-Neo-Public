@@ -32,6 +32,8 @@ class EXAFS_GA:
 
         self.path_optimize = path_optimize
         self.ind_options = individual_path
+        self.printgraph = printgraph
+
 
     def initialize_variable(self,firstpass=False):
         """
@@ -275,7 +277,7 @@ class EXAFS_GA:
         # compute loss function
         for j in self.intervalK:
             # kweight
-            loss = loss + (yTotal[int(j)] * self.g.k[int(j)] ** 2 - self.exp[int(j)] * self.g.k[int(j)] ** 2) ** 2
+            loss = loss + (yTotal[int(j)] * self.g.k[int(j)] ** self.Kweight - self.exp[int(j)] * self.g.k[int(j)] ** self.Kweight) ** 2
         return loss
 
     def eval_Population(self):
@@ -386,7 +388,10 @@ class EXAFS_GA:
             self.logger.info("History Best Indi:\n" + str(np.asarray(self.globBestFit[0].get())))
 
         # Temp locations for calculating plots
-        # plt.ion()
+        if self.printgraph:
+
+            plt.ion()
+
         # for i in range(100):
         #     x = range(i)
         #     y = range(i)
