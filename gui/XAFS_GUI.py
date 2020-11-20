@@ -432,7 +432,7 @@ class App():
         self.Write_ini('test_temp.i')
         self.stop_term()
 
-        command = 'exafs -i test.ini'
+        command = 'exafs -i test_temp.i'
         self.proc = subprocess.Popen(command,shell=True,preexec_fn=os.setsid)
 
     def Build_global(self):
