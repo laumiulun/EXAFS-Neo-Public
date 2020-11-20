@@ -31,7 +31,11 @@ To run a sample test, make sure the enviornment is set correctly, and select a i
         exafs -i test/test.ini
 
 ## GUI
-We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post analysis. 
+We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post
+analysis. To use the GUI:
+
+        cd gui
+        python XAFS_GUI.py
 ## Citation:
 
 TBA
