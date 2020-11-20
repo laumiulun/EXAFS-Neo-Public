@@ -388,14 +388,14 @@ class EXAFS_GA:
             self.logger.info("History Best Indi:\n" + str(np.asarray(self.globBestFit[0].get())))
 
         # Temp locations for calculating plots
-        if self.printgraph:
-
-            plt.ion()
-
+        # if self.printgraph:
+        #
+        #     plt.ion()
+        #     plt.plot()
         # for i in range(100):
         #     x = range(i)
         #     y = range(i)
-        #     # plt.gca().cla() # optionally clear axes
+            # plt.gca().cla() # optionally clear axes
         #     plt.plot(x, y)
         #     plt.title(str(i))
         #     plt.draw()
@@ -596,14 +596,17 @@ class EXAFS_GA:
         random.shuffle(self.nextPopulation)
         self.Populations = self.nextPopulation
 
-    def findE0(self):
+    def findE0(self,mess=None):
         """
         Optimize E0 in the middle of the generations
 
         To Do:
         chi2(E0) vs E0
         """
-        self.logger.info("Finished First Half of Generation, Optimizing E0...")
+        if mess == None:
+            self.logger.info("Finished First Half of Generation, Optimizing E0...")
+        else :
+            self.logger.info(mess)
         lowestX = 99999
         lowestY = 99999
         listOfX = []
@@ -704,7 +707,7 @@ class EXAFS_GA:
             if exit == True:
                 break
 
-        self.findE0()
+        self.findE0(mess='Finished Second Half of Generations, Optimizing E0...')
         self.run_verbose_end()
     def output_generations(self):
         """
