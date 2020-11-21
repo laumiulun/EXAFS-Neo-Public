@@ -7,13 +7,7 @@ class PathObject:
     """
         Paths Objects of a specific paths
     """
-    # def __init__(self,rangeS02,e0,rangeSigma2,rangeDeltaR,path):
-    #
-    #     self.s02 = np.random.choice(rangeS02)
-    #     self.e0 = e0
-    #     self.sigma2 = np.random.choice(rangeSigma2)
-    #     self.deltaR = np.random.choice(rangeDeltaR)
-    #     self.path = path
+
     def __init__(self,pathrange_obj,e0):
         # printpathrange_obj.getrange_S02())
         self.s02 = np.random.choice(pathrange_obj.getrange_S02())
@@ -42,7 +36,6 @@ class PathObject:
     # -----------------
     def set(self,s02,sigma2,deltaR):
         self.set_s02(s02)
-        # self.set_e0(s02)
         self.set_sigma2(sigma2)
         self.set_deltaR(deltaR)
     def set_s02(self,s02):

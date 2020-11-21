@@ -25,8 +25,6 @@ def str_to_bool(s):
 def norm(val):
     return np.linalg.norm(val)
 
-
-
 def banner():
     banner_str = ('''
             EXAFS_GA ver %s

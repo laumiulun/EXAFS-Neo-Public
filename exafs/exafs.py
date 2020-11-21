@@ -5,9 +5,6 @@ from larch import Interpreter
 from .pathObj import PathObject
 from .individual import Individual
 from .pathrange import Pathrange_limits
-# from .run_verbose import *
-
-
 
 class EXAFS_GA:
 
@@ -34,7 +31,6 @@ class EXAFS_GA:
         self.ind_options = individual_path
         self.printgraph = printgraph
 
-
     def initialize_variable(self,firstpass=False):
         """
         Initalize variables
@@ -48,10 +44,7 @@ class EXAFS_GA:
         self.diffCounter = 0
 
         self.pathDictionary = {}
-        # self.MetaDictionary = {}
-        # Not used
-        # self.sortedFourier = 0
-        # self.bestFitIndi = (())
+
         self.bestChir_magTotal = [0]*(326)
         self.bestYTotal = [0]*(401)
         # Typical INI parameters
@@ -62,7 +55,6 @@ class EXAFS_GA:
             self.path_lists = list(range(1,pathrange+1))
             for i in range(len(self.path_lists)):
                 self.path_lists[i] = str(self.path_lists[i])
-
 
         self.npaths = len(self.path_lists)
         self.npops = size_population
@@ -124,9 +116,6 @@ class EXAFS_GA:
 
         self.logger.setLevel(logging.INFO)
         self.logger.info(banner())
-        # print(self.logger.root.handlers)
-        # print(output_file)
-
 
     def check_if_exists(self,path_file):
         """
@@ -140,7 +129,7 @@ class EXAFS_GA:
 
     def check_output_file(self,file):
         """
-        check if the output file for each of the file
+        check if the output file for each of the file, and initialize it.
         """
         file_base= os.path.splitext(file)[0]
         self.check_if_exists(file)
@@ -150,18 +139,9 @@ class EXAFS_GA:
         self.file_initial.write("Gen,TPS,FITTNESS,CURRFIT,CURRIND,BESTFIT,BESTIND\n")  # writing header
         self.file_initial.close()
 
-        # Not using right now
-        # file_score = os.path.splitext(file)[0] + '_score.csv'
-        # self.check_if_exists(file_score)
-        # self.file_score = file_score
-
         file_data = os.path.splitext(file)[0] + '_data.csv'
         self.check_if_exists(file_data)
         self.file_data = file_data
-
-        # Not using right now
-        # file_gen = os.path.splitext(file)[0] + '_generations.csv'
-        # self.check_if_exists(file_gen)
 
     def initialize_range(self,i=0,BestIndi=None):
         """
@@ -171,20 +151,11 @@ class EXAFS_GA:
             Initalize range will be difference for each paths depend if the run are
             in series, therefore the ranges will self-adjust
         """
-
-        # print(self.path_lists)
-        # print("Initialize Range")
         if i == 0:
             self.pathrange_Dict = []
             for i in self.path_lists:
                 self.pathrange_Dict.append(Pathrange_limits(i))
 
-            # self.dt_S02 = [0.01,2]
-            # self.dt_Sigma2 = [0.001,3]
-
-            # self.dt_DeltaR = [0.01,2]
-            # sys.exit()
-            # self.rangeS02 = (np.linspace(5, 95, 91) * 0.01)  # <- should be separate
             self.rangeE0 = (np.linspace(-100, 100, 201) * 0.01) # <- e0, for everything
             self.rangeE0_large = (np.linspace(-600, 600, 1201) * 0.01)  # <- Larger range B
 
@@ -195,7 +166,6 @@ class EXAFS_GA:
                 # self.pathrange_Dict[k].mod_e0(path_bestfit[1])
                 self.pathrange_Dict[k].mod_sigma2(path_bestfit[2])
                 self.pathrange_Dict[k].mod_deltaR(path_bestfit[3])
-
 
     def initialize_group(self):
         """
@@ -233,10 +203,8 @@ class EXAFS_GA:
                 pathName = "Path" + self.path_lists[i]
                 self.pathDictionary.update({pathName: feffdat.feffpath(filename, _larch=self.mylarch)})
         else:
-            # print(paths)
             for i in range(1, self.npaths+1):
                 filename = self.front + str(i).zfill(4) + self.end
-                # pathName = 'Path'+ str(i)
                 pathName = f"Path{i}"
                 self.pathDictionary.update({pathName: feffdat.feffpath(filename, _larch=self.mylarch)})
 
@@ -248,16 +216,12 @@ class EXAFS_GA:
     def generateFirstGen(self):
         self.Populations=[]
         for i in range(self.npops):
-            # e0 = np.random.choice(self.rangeE0)
             self.Populations.append(self.generateIndividual())
 
-    # @profile
     def fitness(self,indObj):
         """
         Evaluate fitness of a individual
         """
-        # from larch_plugins.xafs import feffdat
-        # t1 = time.time()
         loss = 0
         yTotal = [0] * (401)
         # print(self.path_lists)
@@ -282,57 +246,19 @@ class EXAFS_GA:
 
     def eval_Population(self):
         """
-        Evalulate populations
+        Evalulate the whole populations.
         """
-
-        # fittness_pool = Pool(os.cpu_count())
-        # result = fittness_pool.map(self.fitness,self.Populations)
-
-        # output = mp.Queue()
-        # processes = [mp.Process(target=self.fitness, args=(, self.output)) for x in range(4)]
-        # pool = mp.Pool(processes=4)
-        #
-        # results  = [pool.apply(self.fitness,args=(x)) for x in self.Populations]
-        #
-        # print(result)
-
-        # ray.init()
-        # print(type(self.Populations))
-        # score = []
         score = []
         populationPerf = {}
 
         for i,individual in enumerate(self.Populations):
-            # print(i)
-            # print(i,individual)
-            # t1 = time.time()
-            # print(individual)
-
             temp_score = self.fitness(individual)
             score.append(temp_score)
 
             populationPerf[individual] = temp_score
 
-            # self.time == True:
-            # t2 = time.time()
-            # print(t2-t1)
-            # Average
-            # print(individualTuple)
-        # pool = ThreadPool(processes=2)
-        # pool.map(self.fitness,range(self.npops))
-        # pool.close()
-        # pool.join()
-        # print(score)
-        # score
-        # self.pop
-        # print(populationPerf.items())
-        # print(operator.itemgetter(1))
         self.sorted_population = sorted(populationPerf.items(), key=operator.itemgetter(1), reverse=False)
-
-        # print(self.sorted_population)
-        # print(self.bestFit)
         self.currBestFit = list(self.sorted_population[0])
-
         return score
 
     def next_generation(self,detect_limits=False):
@@ -352,9 +278,6 @@ class EXAFS_GA:
         if self.currBestFit[1] < self.globBestFit[1]:
             self.globBestFit = self.currBestFit
 
-        # detecting if limits is hit on the bestfit
-        # if detect_limits:
-            # self.detect_and_adjust_limits()
         # Rechenberg mutation
         if self.genNum > 20:
             if self.bestDiff < 0.1:
@@ -367,16 +290,14 @@ class EXAFS_GA:
             elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
                 self.mut_chance -= 2.5
                 self.mut_chance = abs(self.mut_chance)
-            # elif self.mut_chance > 100:
-                # self.mut_chance -= 20
+
         self.logger.info(f"Best Fit: {bcolors.BOLD}{self.sorted_population[0][1].round(3)}{bcolors.ENDC}")
         self.logger.info("2nd Fit: " + str(self.sorted_population[1][1].round(3)))
         self.logger.info("3rd Fit: " + str(self.sorted_population[2][1].round(3)))
         self.logger.info("4th Fit: " + str(self.sorted_population[3][1].round(3)))
         self.logger.info("Last Fit: " + str(self.sorted_population[-1][1].round(3)))
-        # sys.exit()
+
         with np.printoptions(precision=3, suppress=True):
-            # print(self.intervalK)
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
             self.logger.info(bcolors.BOLD + "Best fit: " + bcolors.OKBLUE + str(self.currBestFit[1]) + bcolors.ENDC)
             CurrchiR = str(self.currBestFit[1]/(len(self.intervalK)-3*self.npaths+1))
@@ -387,26 +308,8 @@ class EXAFS_GA:
             self.logger.info(bcolors.BOLD + "History Best ChiR: " + bcolors.OKBLUE + str(GlobchiR) + bcolors.ENDC)
             self.logger.info("History Best Indi:\n" + str(np.asarray(self.globBestFit[0].get())))
 
-        # Temp locations for calculating plots
-        # if self.printgraph:
-        #
-        #     plt.ion()
-        #     plt.plot()
-        # for i in range(100):
-        #     x = range(i)
-        #     y = range(i)
-            # plt.gca().cla() # optionally clear axes
-        #     plt.plot(x, y)
-        #     plt.title(str(i))
-        #     plt.draw()
-        #     plt.pause(0.1)
-        #
-        # plt.show(block=True)
-        # change
-
         nextBreeders = self.selectFromPopulation()
         self.logger.info("Number of Breeders: " + str(len(self.parents)))
-        # print(self.parents)
         self.createChildren()
         self.logger.info("DiffCounter: " + str(self.diffCounter))
         self.logger.info("Diff %:" + str(self.diffCounter / self.genNum))
@@ -417,17 +320,6 @@ class EXAFS_GA:
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
-
-    def detect_and_adjust_limits(self):
-        best_Fit = self.globBestFit[0].get()
-
-        for i in range(len(self.pathrange_Dict)):
-            temp_range = self.pathrange_Dict[i].getrange()
-
-            self.logger.info(best_Fit[i,0])
-
-            # if temp_range[0] == bestFit[i]
-        exit()
 
     def check_steady_state(self):
         if self.diffCounter > int(0.2 * number_of_generation):
@@ -442,11 +334,6 @@ class EXAFS_GA:
         """
         # Mutation operators
         # 0 = original: generated a new versions:
-        # 1 = mutated every genes in the total populations
-        # 2 = mutated genes inside population based on secondary probability
-
-        # TODO:
-            options 2 and 3 needs to reimplmented
         """
         self.nmutate = 0
 
@@ -462,38 +349,6 @@ class EXAFS_GA:
             for individual in self.Populations:
                 individual.set_e0(e0)
         self.logger.info("Mutate Times: " + str(self.nmutate))
-        """
-        if mutated_options == 1:
-            for i in range(len(population)):
-                for j in range(len(population[i])):
-                    if random.random() * 100 < chance_of_mutation:
-                        mutateTime += 1
-                        if j == 0:
-                            mutate_val = random.choice(rangeA)
-                            population[i][j] == mutate_val
-                        if j == 2:
-                            mutate_val = random.choice(rangeC)
-                            population[i][j] == mutate_val
-                        if j == 3:
-                            mutate_val = random.choice(rangeD)
-                            population[i][j] == mutate_val
-
-        if mutated_options == 2:
-            for i in range(len(population)):
-                if random.random() * 100 < chance_of_mutation:
-                    for j in range(len(population[i])):
-                        if random.random() * 100 < chance_gene_mut:
-                            mutateTime += 1
-                            if j == 0:
-                                mutate_val = random.choice(rangeA)
-                                population[i][j] == mutate_val
-                            if j == 2:
-                                mutate_val = random.choice(rangeC)
-                                population[i][j] == mutate_val
-                            if j == 3:
-                                mutate_val = random.choice(rangeD)
-                                population[i][j] == mutate_val
-        """
 
     def mutateIndi(self):
         """
@@ -532,8 +387,10 @@ class EXAFS_GA:
             child.set_path(i,temp_path[0],temp_path[2],temp_path[3])
         return child
 
-
     def paths_optimization_process(self):
+        """
+        Path Optimizations method.
+        """
         if timeing_mode:
             t0 = timecall()
         self.logger.info("-------------------")
@@ -544,8 +401,6 @@ class EXAFS_GA:
         total = 0
         contrib = []
         for i, (key, value) in enumerate(self.pathDictionary.items()):
-            # print(index, key, value)
-
             path = feffdat.feffpath(value.filename, s02=str(arr[i, 0]), e0=str(arr[i, 1]),
                                     sigma2=str(arr[i, 2]), deltar=str(arr[i, 3]), _larch=self.mylarch)
             feffdat.path2chi(path, _larch=self.mylarch)
@@ -564,15 +419,12 @@ class EXAFS_GA:
             t1 = timecall() - t0
             self.logger.info('Path Optimization took %.2f second' % t1)
 
-        # self.path_lists = list(new_path+1)
         new_path_lists = []
         for i in range(len(new_path)):
             new_path_lists.append(str(new_path[i]+1))
 
         self.path_lists = new_path_lists
         self.ind_options = True
-        # self.npaths = len(self.path_lists)
-
 
     def createChildren(self):
         """
@@ -582,13 +434,11 @@ class EXAFS_GA:
         # --- append the breeder ---
         for i in range(len(self.parents)):
             self.nextPopulation.append(self.parents[i])
-        # print(len(self.nextPopulation))
         # --- use the breeder to crossover
         for i in range(abs(self.npops-self.n_bestsam)-self.n_lucksam):
             par_ind = np.random.choice(len(self.parents),size=2,replace=False)
             child = self.crossover(self.parents[par_ind[0]],self.parents[par_ind[1]])
             self.nextPopulation.append(child)
-        # print(len(self.nextPopulation))
 
         for i in range(self.n_lucksam):
             self.nextPopulation.append(self.generateIndividual())
@@ -611,10 +461,8 @@ class EXAFS_GA:
         lowestY = 99999
         listOfX = []
         listOfY = []
-        # print(type(self.globBestFit[0]))
-        # print(self.globBestFit[0].get_e0())
+
         bestFitlist = copy.deepcopy(self.globBestFit[0])
-        # print(self.globBestFit[0].get_e0())
 
         for i in self.rangeE0_large:
             bestFitlist.set_e0(i)
@@ -629,7 +477,6 @@ class EXAFS_GA:
         self.mut_chance_e0 = 0
         self.globBestFit[0].set_e0(newE0)
         self.globBestFit[1] = lowestY
-
 
     def run_verbose_start(self):
         """
@@ -665,14 +512,9 @@ class EXAFS_GA:
         self.logger.info(f"{bcolors.BOLD}BKG Kw{bcolors.ENDC}: {self.bkgkw}")
         self.logger.info(f"{bcolors.BOLD}BKG Kmax{bcolors.ENDC}: {self.bkgkmax}")
         self.logger.info("-------------------------------------------")
-        # self.logger.info(f"{bcolors.BOLD}Print Out{bcolors.END}: {self.printgraph})
-        # print(f"{bcolors.BOLD}Printout{bcolors.ENDC}: {self.printgraph}")
         self.logger.info(f"{bcolors.BOLD}Steady State{bcolors.ENDC}: {steady_state}")
         self.logger.info(f"{bcolors.BOLD}Output Paths{bcolors.ENDC}: {num_output_paths}")
         self.logger.info("-------------------------------------------")
-
-        # self.logger.info("-------------------------------------------")
-
 
     def run_verbose_end(self):
         """
@@ -681,13 +523,8 @@ class EXAFS_GA:
         self.logger.info("-----------Output Stats---------------")
         self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_path}")
-        # print(f"{bcolors.BOLD}{bcolors.ENDC}: {self.npops}")
-        # print(f"{bcolors.BOLD}Num Gen{bcolors.ENDC}: {self.ngen}")
-        # print(f"{bcolors.BOLD}Num Path{bcolors.ENDC}: {self.npaths}")
-
         self.logger.info(f"{bcolors.BOLD}Path{bcolors.ENDC}: {self.path_lists}")
         self.logger.info(f"{bcolors.BOLD}Final Fittness Score{bcolors.ENDC}: {self.globBestFit[1]}")
-
         self.logger.info("-------------------------------------------")
 
     def run(self,detect_limits=False):
@@ -700,7 +537,6 @@ class EXAFS_GA:
         for i in range(self.ngen):
             temp_gen = self.next_generation(detect_limits=detect_limits)
             self.output_generations()
-            # print(0.5*self.ngen)
             if i == int(0.5*self.ngen)-1:
                 self.findE0()
             exit = self.check_steady_state()
@@ -715,8 +551,6 @@ class EXAFS_GA:
         """
         try:
             f1 = open(self.file,"a")
-        # f1.write(str(self.genNum) + "," + str(self.tdiff) + "," + str(self.currBestFit[1]) + "," + str(self.currBestFit[0].get()) + "," +
-            # str(self.globBestFit[1]) + "," + str(self.globBestFit[0].get()) + "\n")
             f1.write(str(self.genNum) + "," + str(self.tdiff) + "," +
                 str(self.currBestFit[1]) + "," + str(self.currBestFit[0].get()) +"," +
                 str(self.globBestFit[1]) + "," + str(self.globBestFit[0].get()) +"\n")
@@ -726,7 +560,6 @@ class EXAFS_GA:
             f2 = open(self.file_data,"a")
             write = csv.writer(f2)
             bestFit = self.globBestFit[0].get()
-            # print(bestFit)
             for i in range(self.npaths):
                 write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2], bestFit[i][3]))
             f2.write("#################################\n")
@@ -738,25 +571,17 @@ class EXAFS_GA:
         Steps to Initalize EXAFS
             EXAFS
         """
-        # initialize params
+        # Initialize params
         self.initialize_params()
-        # variables
+        # Variables
         self.initialize_variable(firstpass=True)
-        # initialze file paths
+        # Initialze file paths
         self.initialize_file_path()
-        # initialize range
+        # Initialize range
         self.initialize_range()
+        # Initialize group
         self.initialize_group()
 
-        # #  Initalize uses the following:
-        # Initalization Step:
-        #
-        # For automatic range selection between different series, this requries
-        # the following
-        #
-        # Intialize ranges:
-        #
-        # Secondary, calculate the percentages of each chances
         xftf(self.g.k, self.g.chi, kmin=self.Kmin, kmax=self.Kmax, dk=4, window='hanning',
          kweight=self.Kweight, group=self.g, _larch=self.mylarch)
         xftf(self.best.k, self.best.chi, kmin=self.Kmin, kmax=self.Kmax, dk=4, window='hanning',
@@ -772,7 +597,6 @@ class EXAFS_GA:
         self.run()
         if self.path_optimize:
             self.paths_optimization_process()
-
             # variables
             self.initialize_variable()
             # initialze file paths
@@ -815,20 +639,10 @@ class EXAFS_GA:
                  kweight=self.Kweight, group=self.sumgroup, _larch=self.mylarch)
 
                 self.exp = self.g.chi
-                # print(self.path_lists)
-                # print("Load Path")
                 self.loadPaths()
                 #
                 self.generateFirstGen()
                 self.run(detect_limits=True)
 
 def main():
-    # from .helper import *
-    # from .input_arg import *
-    # from .import_lib import *
-    # from .parser import read_input_file
-    # from .ini_parser import *
-    # from .initialization import loadPaths
-    # from .exafs import *
-
     EXAFS_GA()

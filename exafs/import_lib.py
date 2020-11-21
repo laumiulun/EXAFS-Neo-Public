@@ -26,12 +26,6 @@ from larch import Interpreter
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.integrate import simps
-# from multiprocessing import Pool
-# import multiprocessing as mp
-# import ray
-# from multiprocessing import Pool as ProcessPool
-# from multiprocessing.dummy import Pool as ThreadPool  ### this uses threads
-
 
 
 if timeing_mode:
