@@ -24,13 +24,12 @@ setup(
     author=__author__,
     author_email=__email__,
     keywords=['exafs', 'AI', 'analysis'],
-    description='exafs AI analysis using GA',
+    description='EXAFS analysis software using GA',
     long_description=long_description(),
-    url='https://github.com/laumiulun/EXAFS_Neo',
-    download_url='https://github.com/laumiulun/EXAFS_Neo/tarball/master',
+    url='https://github.com/laumiulun/EXAFS-Neo-Public',
+    download_url='https://github.com/laumiulun/EXAFS-Neo-Public/tarball/master',
     include_package_data=True,
     zip_safe=False,
-
     install_requires=requirements,
     entry_points={
         'console_scripts': [
