@@ -208,10 +208,11 @@ class Console():
 
 class App():
     def __init__(self):
+
         # Larch
         self.mylarch = larch.Interpreter()
         self.root = Tk(className='EXAFS Neo GUI')
-        self.root.wm_title("Graphical User Interface for EXAFS Analysis")
+        self.root.wm_title("Graphical User Interface for EXAFS Analysis (Beta)")
 
         self.root.geometry("650x500")
         # self.root.minsize(550, 550)
@@ -219,6 +220,7 @@ class App():
         # self.root.resizable(False, False)
         img = PhotoImage(file='media/icon.png')
         self.root.tk.call('wm','iconphoto',self.root._w,img)
+
 
         self.padx = 5
         self.pady = 3
@@ -240,7 +242,7 @@ class App():
         self.initialize_tab()
 
         self.Build_tabs()
-
+        print(Path.cwd())
     def initialize_var(self):
         """
         Initalize all possible variables in the gui.
@@ -399,9 +401,9 @@ class App():
             writer.write(str(outputs))
 
     def Generate_ini(self):
-        os.chdir("..") #change the working directory from gui to EXAFS
+        # os.chdir("..") #change the working directory from gui to EXAFS
         # while proceed ==  False:
-        ini_file= filedialog.asksaveasfilename(initialdir = os.getcwd(),
+        ini_file= filedialog.asksaveasfilename(initialdir = Path.cwd().parent,
             title = "Choose output ini file",
             filetypes = [("ini files","*.ini")])
         if ini_file is None:
@@ -411,12 +413,12 @@ class App():
                 self.Write_ini(ini_file)
                 messagebox.showinfo('','Ini file written to {fileloc}'.format(fileloc=ini_file))
 
-        os.chdir("gui")
+        # os.chdir("gui")
 
     def stop_term(self):
         if hasattr(self,'proc'):
             print("Stopped EXAFS")
-            os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
+            self.proc.kill()
 
     def run_term(self):
         """
@@ -433,7 +435,7 @@ class App():
         self.stop_term()
 
         command = 'exafs -i test_temp.i'
-        self.proc = subprocess.Popen(command,shell=True,preexec_fn=os.setsid)
+        self.proc = subprocess.Popen("exec " + command,shell=True)
 
     def Build_global(self):
         '''
@@ -443,19 +445,25 @@ class App():
         def about_citation():
             popup = tk.Toplevel()
             popup.wm_title("About")
-            msg = 'Citation:\nAnalysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques\n J. Terry, M. Lau, J. Sun, C. Xu, B. Hendricks,\nJ. Kise, M. Lnu, S. Bagade, S. Shah, P. Makhijani,\nA. Karantha, T. Boltz, M. Oellien, M. Adas, S. Argamon, M. Long, D. Guillen\n[Submission], 2020'
-            label = ttk.Label(popup, text=msg, font="TkTextFont")
-            label.grid(column=0,row=0,padx=self.padx,pady=self.pady)
+            # msg = 'Citation:\nAnalysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques\n J. Terry, M. Lau, J. Sun, C. Xu, B. Hendricks,\nJ. Kise, M. Lnu, S. Bagade, S. Shah, P. Makhijani,\nA. Karantha, T. Boltz, M. Oellien, M. Adas, S. Argamon, M. Long, D. Guillen\n[Submission], 2020'
+            cite = tk.Label(popup,text='Citation:',font='TkTextFont')
+            cite.grid(column=0,row=0,sticky=W,padx=self.padx,pady=self.pady)
+            citation = scrolledtext.ScrolledText(popup, font="TkTextFont")
+            citation.grid(column=0,row=1,padx=self.padx,pady=self.pady)
+            with open('media/Citation') as f:
+                citation.insert(tk.END,f.read())
 
+            License_Label = tk.Label(popup,text='License:',font='TkTextFont')
+            License_Label.grid(column=0,row=2,sticky=W,padx=self.padx,pady=self.pady)
             license = scrolledtext.ScrolledText(popup)
-            license.grid(column=0,row=1,sticky=N+S+W+E,padx=self.padx,pady=self.pady)
+            license.grid(column=0,row=3,sticky=N+S+W+E,padx=self.padx,pady=self.pady)
             with open('../LICENSE') as f:
                 license.insert(tk.END,f.read())
             B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
-            B1.grid(column=0,row=2,padx=self.padx,pady=self.pady)
+            B1.grid(column=0,row=4,padx=self.padx,pady=self.pady)
 
-            popup.grid_columnconfigure(0,weight=1)
-            popup.grid_rowconfigure(1,weight=1)
+            popup.grid_columnconfigure((1,3),weight=1)
+            popup.grid_rowconfigure((1,3),weight=1)
             popup.protocol('WM_DELETE_WINDOW', popup.destroy)
 
         self.generate_button = tk.Button(self.root, text="Generate Input", command=self.Generate_ini)
@@ -477,14 +485,14 @@ class App():
         self.root.grid_rowconfigure(0,weight=1)
 
         # Create a empty frame
-        # self.label_frame = LabelFrame(self.root, text="Terminal", padx=5, pady=5)
-        # self.label_frame.grid(column=0,row=1, columnspan=3, padx=self.padx, pady=self.pady, sticky=E+W+N+S)
+        self.label_frame = LabelFrame(self.root, text="Terminal", padx=5, pady=5)
+        self.label_frame.grid(column=0,row=1, columnspan=4, padx=self.padx, pady=self.pady, sticky=E+W+N+S)
 
         # Create the textbox
-        # self.label_frame.rowconfigure(0,weight=1)
-        # self.label_frame.columnconfigure(0,weight=1)
-        # self.txtbox = scrolledtext.ScrolledText(self.label_frame, width=40, height=10)
-        # self.txtbox.grid(row=0, column=0, sticky=E+W+N+S)
+        self.label_frame.rowconfigure(0,weight=1)
+        self.label_frame.columnconfigure(0,weight=1)
+        self.txtbox = scrolledtext.ScrolledText(self.label_frame, width=40, height=10)
+        self.txtbox.grid(row=0, column=0, sticky=E+W+N+S)
 
     def Build_inputs_tab(self):
         arr_input = ["Data file", "Output File", "FEFF Folder"]
@@ -502,8 +510,8 @@ class App():
         entry_feff_folder.grid(column=1,row=2,sticky=(W,E),padx=self.padx,pady=self.pady)
 
         def select_data_file():
-            os.chdir("..") #change the working directory from gui to EXAFS
-            file_name =  filedialog.askopenfilenames(initialdir = os.getcwd(), title = "Choose xmu/csv", filetypes = (("xmu files", "*.xmu"),("csv files","*.csv"),("all files","*.*")))
+            # os.chdir("..") #change the working directory from gui to EXAFS
+            file_name =  filedialog.askopenfilenames(initialdir = Path.cwd().parent, title = "Choose xmu/csv", filetypes = (("xmu files", "*.xmu"),("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.data_file.set('Please choose file/s')
                 self.temp_data_file.set('Please choose file/s')
@@ -522,7 +530,7 @@ class App():
 
         def select_output_file():
             os.chdir("..") #change the working directory from gui to EXAFS
-            file_name =  filedialog.asksaveasfilename(initialdir = os.getcwd(), title = "Choose data_file", filetypes = (("csv files","*.csv"),("all files","*.*")))
+            file_name =  filedialog.asksaveasfilename(initialdir = Path.cwd().parent, title = "Choose data_file", filetypes = (("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.output_file.set('Please choose a file')
             else:
@@ -531,7 +539,7 @@ class App():
 
         def select_feff_folder():
             os.chdir("..") #change the working directory from gui to EXAFS
-            folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
+            folder_name = filedialog.askdirectory(initialdir = Path.getcwd(), title = "Select folder")
             if not folder_name:
                 self.feff_file.set('Please choose a directory')
             else:
@@ -628,7 +636,7 @@ class App():
         entry_path_optimize.grid(column=1,row=3,sticky=(W),padx=self.padx)
 
     def Build_mutations_tab(self):
-        arr_muts = ["Mutation Chance (%)", "Original chance of mutation (%)", "E0 Mutation Chance (%)", "Mutation Options (%)"]
+        arr_muts = ["Mutation Chance (%)", "Original chance of mutation (%)", "E0 Mutation Chance (%)", "Mutation Options"]
         self.description_tabs(arr_muts,self.tab_Mutation)
 
         mut_list = list(range(101))
@@ -723,7 +731,7 @@ class App():
         gen_min = IntVar(self.tab_Output,20)
         gen_max = IntVar(self.tab_Output,501)
         mut_min = IntVar(self.tab_Output,20)
-        mut_max = IntVar(self.tab_Output,101)
+        mut_max = IntVar(self.tab_Output,51)
 
         pertub_check = IntVar(self.tab_Output,0)
         def generate_multi_ini():
@@ -732,11 +740,10 @@ class App():
             gen_range = np.arange(gen_min.get(),gen_max.get(),5)
             mut_range = np.arange(mut_min.get(),mut_max.get(),10)
             # exit()
-            multi_folder = filedialog.askdirectory(initialdir = os.getcwd(),title = 'Select folder')
+            multi_folder = filedialog.askdirectory(initialdir = Path.getcwd(),title = 'Select folder')
             if not multi_folder:
                 return
             else:
-                print(multi_folder)
                 og_pop = self.populations.get()
                 og_gen = self.num_gen.get()
                 og_mut = self.chance_of_mutation.get()
@@ -853,7 +860,7 @@ class App():
 
         def select_analysis_folder():
             os.chdir("..") #change the working directory from gui to EXAFS
-            folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
+            folder_name = filedialog.askdirectory(initialdir = Path.getcwd(), title = "Select folder")
             if not folder_name:
                 analysis_folder.set('Please choose a directory')
             else:
@@ -930,6 +937,7 @@ class App():
         on closing function
         """
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.stop_term()
             if hasattr(self,'terminal'):
                 self.root.quit()
                 self.terminal.destroy()
@@ -941,7 +949,24 @@ class App():
         Run the code
         """
         self.root.protocol('WM_DELETE_WINDOW', self.On_closing)
+        self.beta_popup()
+
         self.root.mainloop()
+
+    def beta_popup(self):
+        beta_popup = tk.Toplevel(self.root)
+        beta_popup.wm_title("Warning")
+        # msg = 'Citation:\nAnalysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques\n J. Terry, M. Lau, J. Sun, C. Xu, B. Hendricks,\nJ. Kise, M. Lnu, S. Bagade, S. Shah, P. Makhijani,\nA. Karantha, T. Boltz, M. Oellien, M. Adas, S. Argamon, M. Long, D. Guillen\n[Submission], 2020'
+        msg = "This Graphical User Interface is still under active developement\n Please contract us if you run into any issues."
+        entry = ttk.Label(beta_popup,text=msg)
+        entry.grid(column=0,row=0,padx=5,pady=3)
+        B1 = ttk.Button(beta_popup, text="Okay", command = beta_popup.destroy)
+        B1.grid(column=0,row=1,padx=5,pady=3)
+
+        beta_popup.grid_columnconfigure((0,1),weight=1)
+        beta_popup.grid_rowconfigure((0,1),weight=1)
+        beta_popup.protocol('WM_DELETE_WINDOW', beta_popup.destroy)
+        beta_popup.attributes('-topmost', 'true')
 
 root = App()
 root.Run()

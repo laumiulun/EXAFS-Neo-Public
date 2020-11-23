@@ -58,6 +58,7 @@ class EXAFS_Analysis:
             self.series = self.params['series']
             self.series_index = self.params['series_index']
 
+
     def read_optimize_paths(self,files_opt):
         optimize_path = []
         for i in range(len(files_opt)):
@@ -91,31 +92,40 @@ class EXAFS_Analysis:
         if self.params['optimize'] == True:
             files_opt = []
             files_opt_data = []
-        # print(folder)
-        self.return_str += str(folder + "\n")
-        search_string = '*_*_' + str(series_index) + '_data.csv'
-        # print(search_string)
-        for r, d, f in os.walk(folder):
+
+        if os.path.isdir(folder) == True:
+            self.params['individual'] = False
+
+            # self.return_str += str(folder + "\n")
+            search_string = '*_*_' + str(series_index) + '_data.csv'
+
+            f = os.listdir(folder)
             f.sort(key = natural_keys)
             for file in f:
-                # if '_data.csv' in file:
 
                 if series == False:
                     # if re.search('test_\d+_data.csv',file):
                     if fnmatch.fnmatch(file,'*_data.csv'):
-                        files.append(os.path.join(r, file))
+                        files.append(os.path.join(folder, file))
                 elif series == True:
                     # print(search_string)
                     # if re.search(search_string,file):
                     if fnmatch.fnmatch(file,search_string):
-                        files.append(os.path.join(r, file))
+                        files.append(os.path.join(folder, file))
                     # print(" ",file)
                 elif self.params['optimize'] == True:
                     # if re.search('test_\d+_optimized_data.csv',file):
                     if re.search('test_\d+_optimized.csv',file):
-                        files_opt.append(os.path.join(r, file))
+                        files_opt.append(os.path.join(folder, file))
                     if re.search('test_\d+_optimized_data.csv',file):
-                        files_opt_data.append(os.path.join(r, file))
+                        files_opt_data.append(os.path.join(folder, file))
+
+        else:
+            self.params['individual'] = True
+            files.append(folder)
+        # print(search_string)
+        # for r, d, f in os.walk(folder):
+        print(folder)
 
         files.sort(key=natural_keys)
         if self.params['optimize'] == True:
@@ -133,22 +143,34 @@ class EXAFS_Analysis:
     #             print(gen_csv.shape)
                 gen_csv_unflatten = gen_csv.reshape((-1,4*num_path))
 
-                if i == 0:
+                gen_csv_best_unflatten = gen_csv[-num_path::].reshape((-1,4*num_path))
+
+                if self.params['individual']:
                     full_mat = gen_csv_unflatten
-                full_mat = np.vstack((full_mat,gen_csv_unflatten))
+                    best_full_mat = gen_csv_best_unflatten
+                else:
+                    if i == 0:
+                        full_mat = gen_csv_unflatten
+                        best_full_mat = gen_csv_best_unflatten
+                    best_full_mat = np.vstack((best_full_mat,gen_csv_best_unflatten))
+                    full_mat = np.vstack((full_mat,gen_csv_unflatten))
             except OSError:
                 print(" " + str(i) + " Missing")
                 pass
 
-        return full_mat
+        return full_mat,best_full_mat
     def extract_data(self):
         r"""
         Extract data value using array data
         """
-        full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
-        bestFit,err = self.construct_bestfit_err_mat(full_mat,self.paths)
-        best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
-        # print(best_Fit)
+        full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
+        bestFit,err = self.construct_bestfit_err_mat(full_mat,bestfit_full_mat,self.paths)
+        if self.params['individual']:
+            best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
+        else:
+            best_Fit = np.mean(bestfit_full_mat,axis=0).reshape(-1,4).round(6)
+
+        print(best_Fit)
         self.bestFit = bestFit
         self.err = err
         self.bestFit_mat = best_Fit
@@ -166,10 +188,12 @@ class EXAFS_Analysis:
         self.big = params['BIG']
         self.intervalK = params['intervalK']
         self.mylarch = mylarch
+
     def larch_score(self,return_r=False):
         r"""
         Calculate fitness score based on Chi and ChiR
         """
+        # print(self.bestFit_mat)
         path,yTotal,best,loss,best_Fit_r,arr= larch_score.fitness(self.exp,self.bestFit_mat,self.paths,self.params,return_r=True);
         self.return_str += arr
 
@@ -188,6 +212,7 @@ class EXAFS_Analysis:
         self.chir2 = chir2
         self.best_Fit_r = np.array(best_Fit_r)
         print(self.return_str)
+
     def plot(self,title='Test',fig_gui=None):
         r"""
         Plot the K and R Space
@@ -224,7 +249,7 @@ class EXAFS_Analysis:
 
 
 
-    def construct_latex_table(self):
+    def construct_latex_table(self,print_table=False):
         r"""
         Construct simple latex table
 
@@ -237,6 +262,8 @@ class EXAFS_Analysis:
         self.nleg_arr = nleg_arr
         self.label_arr = label_arr
         self.latex_table_str = latex_table_str
+        if print_table:
+            print(self.latex_table_str)
     def individual_fit(self,plot=False):
         r"""
         Perform fittness calculation separately for each paths
@@ -279,7 +306,7 @@ class EXAFS_Analysis:
         if igor_true == True:
             self.export_igor_individual()
 
-    def construct_bestfit_err_mat(self,full_mat,paths,plot=False):
+    def construct_bestfit_err_mat(self,full_mat,bestfit_full_mat,paths,plot=False):
         r"""
         Construct the average best fit matrix using the sum of the files, and
         generate the corresponding labels using the paths provided.
@@ -288,12 +315,14 @@ class EXAFS_Analysis:
 
         """
         full_mat_var = np.delete(full_mat, np.s_[5::4],axis=1)
+        bestfit_full_mat_var = np.delete(bestfit_full_mat,np.s_[5::4],axis=1)
         full_mat_var_cov = np.cov(full_mat_var.T)
         full_mat_diag = np.diag(full_mat_var_cov)
         err = np.sqrt(full_mat_diag)
 
         label = larch_score.generate_labels(paths)[0]
 
+        # bestFit = np.mean(bestfit_full_mat_var,axis=0)
         bestFit = np.mean(full_mat_var,axis=0)
         self.label = label
         self.full_mat_diag = full_mat_diag
