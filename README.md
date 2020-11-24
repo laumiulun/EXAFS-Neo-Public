@@ -37,6 +37,14 @@ analysis. To use the GUI:
 
         cd gui
         python XAFS_GUI.py
+        
+## Potential Errors
+If you get an error message involving psutl, make sure you are in the right conda environment and reinstall psutl and xraylarch:
+
+        conda activate exafs
+        conda install psutl
+        conda install -yc GSECARS xraylarch
+        
 
 ## Citation:
 
