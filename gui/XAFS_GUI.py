@@ -401,9 +401,9 @@ class App():
             writer.write(str(outputs))
 
     def Generate_ini(self):
-        # os.chdir("..") #change the working directory from gui to EXAFS
+        os.chdir("..") #change the working directory from gui to EXAFS
         # while proceed ==  False:
-        ini_file= filedialog.asksaveasfilename(initialdir = Path.cwd().parent,
+        ini_file= filedialog.asksaveasfilename(initialdir = os.getcwd(),
             title = "Choose output ini file",
             filetypes = [("ini files","*.ini")])
         if ini_file is None:
@@ -413,7 +413,7 @@ class App():
                 self.Write_ini(ini_file)
                 messagebox.showinfo('','Ini file written to {fileloc}'.format(fileloc=ini_file))
 
-        # os.chdir("gui")
+        os.chdir("gui")
 
     def stop_term(self):
         if hasattr(self,'proc'):
@@ -510,8 +510,8 @@ class App():
         entry_feff_folder.grid(column=1,row=2,sticky=(W,E),padx=self.padx,pady=self.pady)
 
         def select_data_file():
-            # os.chdir("..") #change the working directory from gui to EXAFS
-            file_name =  filedialog.askopenfilenames(initialdir = Path.cwd().parent, title = "Choose xmu/csv", filetypes = (("xmu files", "*.xmu"),("csv files","*.csv"),("all files","*.*")))
+            os.chdir("..") #change the working directory from gui to EXAFS
+            file_name =  filedialog.askopenfilenames(initialdir = os.getcwd(), title = "Choose xmu/csv", filetypes = (("xmu files", "*.xmu"),("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.data_file.set('Please choose file/s')
                 self.temp_data_file.set('Please choose file/s')
@@ -530,7 +530,7 @@ class App():
 
         def select_output_file():
             os.chdir("..") #change the working directory from gui to EXAFS
-            file_name =  filedialog.asksaveasfilename(initialdir = Path.cwd().parent, title = "Choose data_file", filetypes = (("csv files","*.csv"),("all files","*.*")))
+            file_name =  filedialog.asksaveasfilename(initialdir = os.getcwd(), title = "Choose data_file", filetypes = (("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.output_file.set('Please choose a file')
             else:

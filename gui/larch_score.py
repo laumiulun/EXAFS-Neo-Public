@@ -227,16 +227,11 @@ def fitness(exp,arr,paths,params,return_r=True):
         #print(filename)
         feffdat.path2chi(path, larch=mylarch)
         # print("Path", paths[i], path.s02, path.e0, path.sigma2, path.reff+arr[i,3])
-        array_str += "Path " + str(paths[i]) + " " + str(path.s02) + " " + str(path.e0) + " " + str(path.sigma2) + " " + str(path.reff+arr[i,3]) + "\n"
+        array_str += "Path " + str(paths[i]) + " " + str(path.s02) + " " + str(path.e0) + " " + str(np.round(float(path.sigma2),4)) + " " + str(np.round(path.reff+arr[i,3],3)) + "\n"
 
         temp = [float(path.s02),float(path.e0),float(path.sigma2),float(path.reff+arr[i,3]),float(path.degen),float(path.nleg),(path.geom)]
         arr_r.append(temp)
-#         plt.plot(path.k, path.chi*path.k**2.0 + offset*(i-1),label='Path'+str(i))
 
-#         plt.xlabel("k (Å$^{-1}$)")
-#         plt.ylabel("$\chi(k)$")
-#         plt.ylim(-5,15)
-#         plt.xlim(0,Kmax+1)
         y = path.chi
 
 
@@ -316,8 +311,7 @@ def write_result_n_err(full_mat_var,err,name='bestfit_err.csv',header_base='Samp
     #
     # average = np.mean(full_mat_var,axis=0)
     average = full_mat_var
-    # print(len(average))
-    # print(len(err))
+
     assert len(average)== len(err)
     out_mat = np.vstack((average,err)).T
 
