@@ -403,8 +403,8 @@ def latex_table(paths,best_Fit_r,err_full):
               str(int(best_Fit_r[i,4])) + " & " +
               convert_to_str(best_Fit_r[i,0],prec_arr[0]) + r"$\pm$" + convert_to_str(err_full[i,0],prec_arr[0]) + " & " +
               convert_to_str(best_Fit_r[i,1],prec_arr[1]) + r"$\pm$" + convert_to_str(err_full[i,1],prec_arr[1]) + " & " +
-              convert_to_str(best_Fit_r[i,2],prec_arr[2]) + r"$\pm$" + convert_to_str(err_full[i,2],prec_arr[2]) + " & " +
-              convert_to_str(best_Fit_r[i,3],prec_arr[3]) + r"$\pm$" + convert_to_str(err_full[i,3],prec_arr[3]) + " &  "+
+              str(np.round(best_Fit_r[i,2],4)) + r"$\pm$" + str(np.round(err_full[i,2],4)) + " & " +
+              str(np.round(best_Fit_r[i,3],3)) + r"$\pm$" + str(np.round(err_full[i,3],3)) + " &  "+
               str(int(best_Fit_r[i,5]))  + " & " + label_arr[i]+ r"\\")
 
     latex_table_str +=(r"""                        \hline
