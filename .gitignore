@@ -46,7 +46,9 @@ path_files/
 *.csv
 *.txt
 global_analysis/
-
+*.egg-info/
+build/
+dist/
 
 # Python Related #
 #####################
