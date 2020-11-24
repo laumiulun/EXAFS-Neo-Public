@@ -4,7 +4,9 @@ class Individual(PathObject):
     def __init__(self,npaths,pathrange_Dict,e0):
         self.npaths = npaths
         self.Population = []
+        # self.path_lists = path_lists
         for pathrange in pathrange_Dict:
+            # self.Population.append(PathObject(rangeS02,e0,rangeSigma2,rangeDeltaR,i))
             self.Population.append(PathObject(pathrange,e0))
 
     def get(self):

@@ -81,3 +81,9 @@ def print_input_file(file_dict):
         print("[" +bcolors.BOLD + str(key)+ bcolors.ENDC +"]")
         for inner_key,inner_value in value.items():
             print('---'  +  inner_key + ": " +inner_value)
+
+
+## Need to run some sample:
+# if __name__ == '__main__':
+#
+#     checkKey()
