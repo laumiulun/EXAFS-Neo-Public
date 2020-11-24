@@ -539,7 +539,7 @@ class App():
 
         def select_feff_folder():
             os.chdir("..") #change the working directory from gui to EXAFS
-            folder_name = filedialog.askdirectory(initialdir = Path.getcwd(), title = "Select folder")
+            folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
             if not folder_name:
                 self.feff_file.set('Please choose a directory')
             else:
@@ -740,7 +740,7 @@ class App():
             gen_range = np.arange(gen_min.get(),gen_max.get(),5)
             mut_range = np.arange(mut_min.get(),mut_max.get(),10)
             # exit()
-            multi_folder = filedialog.askdirectory(initialdir = Path.getcwd(),title = 'Select folder')
+            multi_folder = filedialog.askdirectory(initialdir = os.getcwd(),title = 'Select folder')
             if not multi_folder:
                 return
             else:
@@ -860,7 +860,7 @@ class App():
 
         def select_analysis_folder():
             os.chdir("..") #change the working directory from gui to EXAFS
-            folder_name = filedialog.askdirectory(initialdir = Path.getcwd(), title = "Select folder")
+            folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
             if not folder_name:
                 analysis_folder.set('Please choose a directory')
             else:
