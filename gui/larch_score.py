@@ -378,6 +378,13 @@ def cal_err_prec(val_arr):
     return prec_arr
 
 
+def temp_round_deltaR(val):
+    if val < 1e-6:
+        val = 0.001
+    else:
+        val = np.round(val,3)
+    return val
+
 # conver to latex table output
 def latex_table(paths,best_Fit_r,err_full):
     nleg_arr =[]
@@ -404,7 +411,7 @@ def latex_table(paths,best_Fit_r,err_full):
               convert_to_str(best_Fit_r[i,0],prec_arr[0]) + r"$\pm$" + convert_to_str(err_full[i,0],prec_arr[0]) + " & " +
               convert_to_str(best_Fit_r[i,1],prec_arr[1]) + r"$\pm$" + convert_to_str(err_full[i,1],prec_arr[1]) + " & " +
               str(np.round(best_Fit_r[i,2],4)) + r"$\pm$" + str(np.round(err_full[i,2],4)) + " & " +
-              str(np.round(best_Fit_r[i,3],3)) + r"$\pm$" + str(np.round(err_full[i,3],3)) + " &  "+
+              str(np.round(best_Fit_r[i,3],3)) + r"$\pm$" + str(temp_round_deltaR(err_full[i,3])) + " &  "+
               str(int(best_Fit_r[i,5]))  + " & " + label_arr[i]+ r"\\")
 
     latex_table_str +=(r"""                        \hline
