@@ -957,7 +957,7 @@ class App():
         beta_popup = tk.Toplevel(self.root)
         beta_popup.wm_title("Warning")
         # msg = 'Citation:\nAnalysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques\n J. Terry, M. Lau, J. Sun, C. Xu, B. Hendricks,\nJ. Kise, M. Lnu, S. Bagade, S. Shah, P. Makhijani,\nA. Karantha, T. Boltz, M. Oellien, M. Adas, S. Argamon, M. Long, D. Guillen\n[Submission], 2020'
-        msg = "This Graphical User Interface is still under active developement\n Please contract us if you run into any issues."
+        msg = "This Graphical User Interface is still under active developement\n Please contact us if you run into any issues."
         entry = ttk.Label(beta_popup,text=msg)
         entry.grid(column=0,row=0,padx=5,pady=3)
         B1 = ttk.Button(beta_popup, text="Okay", command = beta_popup.destroy)
