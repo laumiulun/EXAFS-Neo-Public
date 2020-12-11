@@ -4,7 +4,7 @@
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
-## Pre-requisites
+## Prerequisites
 It is highly recommend to utilize `anaconda` or `pipx` package managers to prevent unforseen dependency conflicts. EXAFS Neo uses [`larch`](https://xraypy.github.io/xraylarch/) to process the x-ray spectrum.
 
   - Python: 3.x
@@ -45,7 +45,10 @@ If you get an error message involving psutl, make sure you are in the right cond
         conda install psutl
         conda install -yc GSECARS xraylarch
         
+## Video Demonstration
+You can see a video demonstration of the EXAFS Neo package presented at the Canadian Light Source.
+https://youtu.be/jqISqq_FFR8
 
 ## Citation:
 
-TBA
+Jeff Terry, Miu Lun Lau, Jiateng Sun, Chang Xu, Bryan Hendricks, Julia Kise, Mrinalini Lnu, Sanchayni Bagade, Shail Shah, Priyanka Makhijani, Adithya Karantha, Travis Boltz, Max Oellien, Matthew Adas, Shlomo Argamon, Min Long, and Donna Post Guillen, "Analysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques," submitted 2020. 
