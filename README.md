@@ -30,6 +30,11 @@ To run a sample test, make sure the enviornment is set correctly, and select a i
 
         exafs -i test/test.ini
 
+## Update:
+EXAFS Neo is under active development, to update the code after pulling from the repository:
+
+        git pull --rebase
+        python setup.py install
 
 ## GUI
 We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post
@@ -37,18 +42,18 @@ analysis. To use the GUI:
 
         cd gui
         python XAFS_GUI.py
-        
+
 ## Potential Errors
 If you get an error message involving psutl, make sure you are in the right conda environment and reinstall psutl and xraylarch:
 
         conda activate exafs
         conda install psutl
         conda install -yc GSECARS xraylarch
-        
+
 ## Video Demonstration
 You can see a video demonstration of the EXAFS Neo package presented at the Canadian Light Source.
 https://youtu.be/jqISqq_FFR8
 
 ## Citation:
 
-Jeff Terry, Miu Lun Lau, Jiateng Sun, Chang Xu, Bryan Hendricks, Julia Kise, Mrinalini Lnu, Sanchayni Bagade, Shail Shah, Priyanka Makhijani, Adithya Karantha, Travis Boltz, Max Oellien, Matthew Adas, Shlomo Argamon, Min Long, and Donna Post Guillen, "Analysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques," submitted 2020. 
+Jeff Terry, Miu Lun Lau, Jiateng Sun, Chang Xu, Bryan Hendricks, Julia Kise, Mrinalini Lnu, Sanchayni Bagade, Shail Shah, Priyanka Makhijani, Adithya Karantha, Travis Boltz, Max Oellien, Matthew Adas, Shlomo Argamon, Min Long, and Donna Post Guillen, "Analysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques," submitted 2020.
