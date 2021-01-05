@@ -7,8 +7,6 @@ from .individual import Individual
 from .pathrange import Pathrange_limits
 # from .run_verbose import *
 
-
-
 class EXAFS_GA:
 
     def initialize_params(self,verbose = False):
@@ -465,6 +463,9 @@ class EXAFS_GA:
                 for individual in self.Populations:
                     individual.set_e0(e0)
 
+
+        # if self.mut_opt == 1:
+
         self.logger.info("Mutate Times: " + str(self.nmutate))
         """
         if mutated_options == 1:
@@ -563,19 +564,19 @@ class EXAFS_GA:
         contrib_p = [i/total for i in contrib]
         new_path = (np.argwhere(np.array(contrib_p)>=0.01)).flatten()
 
-        self.logger.info(f"New Paths: {new_path+1}")
         if timeing_mode:
             t1 = timecall() - t0
             self.logger.info('Path Optimization took %.2f second' % t1)
 
-        # self.path_lists = list(new_path+1)
         new_path_lists = []
         for i in range(len(new_path)):
-            new_path_lists.append(str(new_path[i]+1))
+            new_path_lists.append(str(self.path_lists[i]))
+            # new_path_lists.append(str(new_path[i]+1))
 
         self.path_lists = new_path_lists
         self.ind_options = True
-        # self.npaths = len(self.path_lists)
+        self.logger.info(f"New Paths: {self.path_lists}")
+
 
 
     def createChildren(self):
@@ -679,9 +680,6 @@ class EXAFS_GA:
         self.logger.info(f"{bcolors.BOLD}Output Paths{bcolors.ENDC}: {num_output_paths}")
         self.logger.info("-------------------------------------------")
 
-        # self.logger.info("-------------------------------------------")
-
-
     def run_verbose_end(self):
         """
         Verbose end
@@ -689,9 +687,6 @@ class EXAFS_GA:
         self.logger.info("-----------Output Stats---------------")
         self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_path}")
-        # print(f"{bcolors.BOLD}{bcolors.ENDC}: {self.npops}")
-        # print(f"{bcolors.BOLD}Num Gen{bcolors.ENDC}: {self.ngen}")
-        # print(f"{bcolors.BOLD}Num Path{bcolors.ENDC}: {self.npaths}")
 
         self.logger.info(f"{bcolors.BOLD}Path{bcolors.ENDC}: {self.path_lists}")
         self.logger.info(f"{bcolors.BOLD}Final Fittness Score{bcolors.ENDC}: {self.globBestFit[1]}")
