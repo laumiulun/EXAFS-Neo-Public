@@ -29,6 +29,7 @@ class EXAFS_GA:
         self.intervalK = np.linspace(self.small,self.big,self.mid)
 
         self.path_optimize = path_optimize
+        self.path_optimize_percent = path_optimize_percent
         self.ind_options = individual_path
         self.printgraph = printgraph
 
@@ -86,7 +87,7 @@ class EXAFS_GA:
         # reset e0
         self.secondhalf = False
         self.bestE0 = 0
-    def initialize_file_path(self,i=0,firstpass=False):
+    def initialize_file_path(self,i=0,firstpass=False,path_optimize=False):
         """
         Initalize file paths for each of the file first
         """
@@ -94,7 +95,11 @@ class EXAFS_GA:
         self.base = os.getcwd()
         self.front = os.path.join(self.base,feff_file)
 
+        # if path_optimize:
+            # self.output_path =
         if self.csv_series == True:
+            # Data paths = exp file
+            # output paths =
             self.data_path = os.path.join(self.base,csv_file[i])
             self.output_path = os.path.splitext(os.path.join(self.base,output_file))[0] + "_" + str(i) + ".csv"
             self.log_path = os.path.splitext(copy.deepcopy(self.output_path))[0] + ".log"
@@ -103,6 +108,9 @@ class EXAFS_GA:
             self.data_path = os.path.join(self.base,csv_file)
             self.output_path = os.path.join(self.base,output_file)
             self.log_path = os.path.splitext(copy.deepcopy(self.output_path))[0] + ".log"
+
+        if path_optimize:
+            self.output_path = os.path.splitext(os.path.join(self.base,output_file))[0] + "_optimized.csv"
 
         self.end ='.dat'
         self.check_output_file(self.output_path)
@@ -207,13 +215,15 @@ class EXAFS_GA:
         self.best = read_ascii(self.data_path)
         self.sumgroup = read_ascii(self.data_path)
 
-        # Check if
+        # Check if using k space, else autobk
         try:
+            self.g.k
             self.g.chi
         except AttributeError:
             autobk(self.g, rbkg=rbkg, kweight=bkgkw, kmax=bkgkmax, _larch=self.mylarch)
             autobk(self.best, rbkg=rbkg, _larch=self.mylarch)
             autobk(self.sumgroup, rbkg=rbkg, _larch=self.mylarch)
+
 
     def initialize_paths(self):
         """
@@ -243,7 +253,7 @@ class EXAFS_GA:
         if self.secondhalf == False:
             e0 = np.random.choice(self.rangeE0)
 
-        ind = Individual(self.npaths,self.pathrange_Dict,e0)
+        ind = Individual(self.npaths,self.pathDictionary,self.pathrange_Dict,self.path_lists,e0)
         return ind
 
     def generateFirstGen(self):
@@ -388,29 +398,21 @@ class EXAFS_GA:
             self.logger.info(bcolors.BOLD + "History Best ChiR: " + bcolors.OKBLUE + str(GlobchiR) + bcolors.ENDC)
             self.logger.info("History Best Indi:\n" + str(np.asarray(self.globBestFit[0].get())))
 
-        # Temp locations for calculating plots
-        # if self.printgraph:
-        #
-        #     plt.ion()
-        #     plt.plot()
-        # for i in range(100):
-        #     x = range(i)
-        #     y = range(i)
-            # plt.gca().cla() # optionally clear axes
-        #     plt.plot(x, y)
-        #     plt.title(str(i))
-        #     plt.draw()
-        #     plt.pause(0.1)
-        #
-        # plt.show(block=True)
-        # change
+        if self.printgraph:
+            total = self.globBestFit[0].verbose_yTotal(self.intervalK)
+            plt.figure()
+            plt.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,label='exp')
+            plt.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,label='Machine Learning')
+            plt.legend()
+            plt.pause(0.01)
+            # Blocking is necessary, it prevents unwanted crashes
+            plt.show()
 
         nextBreeders = self.selectFromPopulation()
         self.logger.info("Number of Breeders: " + str(len(self.parents)))
-        # print(self.parents)
         self.createChildren()
         self.logger.info("DiffCounter: " + str(self.diffCounter))
-        self.logger.info("Diff %:" + str(self.diffCounter / self.genNum))
+        self.logger.info("Diff %: " + str(self.diffCounter / self.genNum))
         self.logger.info("Mutation Chance: " + str(self.mut_chance))
         self.mutatePopulation()
 
@@ -548,6 +550,7 @@ class EXAFS_GA:
         arr = np.asarray(self.globBestFit[0].get())
         total = 0
         contrib = []
+
         for i, (key, value) in enumerate(self.pathDictionary.items()):
             # print(index, key, value)
 
@@ -562,21 +565,22 @@ class EXAFS_GA:
             total += area
             contrib.append(area)
         contrib_p = [i/total for i in contrib]
-        new_path = (np.argwhere(np.array(contrib_p)>=0.01)).flatten()
+        new_path_ind = (np.argwhere(np.array(contrib_p)>=self.path_optimize_percent)).flatten()
 
         if timeing_mode:
             t1 = timecall() - t0
             self.logger.info('Path Optimization took %.2f second' % t1)
 
-        new_path_lists = []
-        for i in range(len(new_path)):
-            new_path_lists.append(str(self.path_lists[i]))
-            # new_path_lists.append(str(new_path[i]+1))
+        new_path = []
+        for i in new_path_ind:
+            if i in new_path_ind:
+                new_path.append(self.path_lists[i])
 
-        self.path_lists = new_path_lists
+        self.path_lists = new_path
         self.ind_options = True
-        self.logger.info(f"New Paths: {self.path_lists}")
 
+        self.logger.info(f"New Paths: {self.path_lists}")
+        self.logger.info(f"Percentage: {str(contrib_p)}")
 
 
     def createChildren(self):
@@ -597,16 +601,13 @@ class EXAFS_GA:
 
         for i in range(self.n_lucksam):
             self.nextPopulation.append(self.generateIndividual(self.bestE0))
-
+        # Shuffle the populations
         random.shuffle(self.nextPopulation)
         self.Populations = self.nextPopulation
 
     def findE0(self,mess=None):
         """
         Optimize E0 in the middle of the generations
-
-        To Do:
-        chi2(E0) vs E0
         """
         if mess == None:
             self.logger.info("Finished First Half of Generation, Optimizing E0...")
@@ -661,6 +662,7 @@ class EXAFS_GA:
         self.logger.info(f"{bcolors.BOLD}Num Path{bcolors.ENDC}: {self.npaths}")
         self.logger.info(f"{bcolors.BOLD}Path{bcolors.ENDC}: {list(map(int,self.path_lists))}")
         self.logger.info(f"{bcolors.BOLD}Path Optimize{bcolors.ENDC}: {self.path_optimize}")
+        self.logger.info(f"{bcolors.BOLD}Path Optimize Percent{bcolors.ENDC}: {self.path_optimize_percent}")
         self.logger.info("----------------Mutations------------------")
         self.logger.info(f"{bcolors.BOLD}Mutations{bcolors.ENDC}: {self.mut_chance}")
         self.logger.info(f"{bcolors.BOLD}E0 Mutations{bcolors.ENDC}: {self.mut_chance_e0}")
@@ -676,8 +678,9 @@ class EXAFS_GA:
         self.logger.info("-------------------------------------------")
         # self.logger.info(f"{bcolors.BOLD}Print Out{bcolors.END}: {self.printgraph})
         # print(f"{bcolors.BOLD}Printout{bcolors.ENDC}: {self.printgraph}")
-        self.logger.info(f"{bcolors.BOLD}Steady State{bcolors.ENDC}: {steady_state}")
-        self.logger.info(f"{bcolors.BOLD}Output Paths{bcolors.ENDC}: {num_output_paths}")
+        self.logger.info(f"{bcolors.BOLD}Steady State{bcolors.ENDC}: {self.steady_state}")
+        self.logger.info(f"{bcolors.BOLD}Print Graph{bcolors.ENDC}: {self.printgraph}")
+        # self.logger.info(f"{bcolors.BOLD}Output Paths{bcolors.ENDC}: {num_output_paths}")
         self.logger.info("-------------------------------------------")
 
     def run_verbose_end(self):
@@ -784,7 +787,7 @@ class EXAFS_GA:
             # variables
             self.initialize_variable()
             # initialze file paths
-            self.initialize_file_path(firstpass=True)
+            self.initialize_file_path(path_optimize=True)
             # initialize range
             self.initialize_range()
 

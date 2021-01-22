@@ -48,7 +48,7 @@ def read_input_file(input_file,verbose=False):
     CheckKey(Mutations_dict,mutation_min)
 
     path_min = ['path_range','path_list','individual_path']
-    path_optional = ['path_optimize']
+    path_optional = ['path_optimize','optimize_percent']
     CheckKey(Paths_dict,path_min)
     path_missing = CheckOptionalKey(Paths_dict,path_optional)
 
@@ -56,10 +56,9 @@ def read_input_file(input_file,verbose=False):
     CheckKey(Larch_dict,larch_min)
 
     output_min =['print_graph','num_output_paths']
-    output_optional = ['steady_state']
+    output_optional = ['steady_state_exit']
     CheckKey(Outputs_dict,output_min)
-    output_missing = CheckOptionalKey(Outputs_dict,output_min)
-
+    output_missing = CheckOptionalKey(Outputs_dict,output_optional)
     # Adjust values
 
     # Pack all of them into a single dicts

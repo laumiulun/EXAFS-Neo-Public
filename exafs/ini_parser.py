@@ -45,8 +45,10 @@ pathrange = int(Paths_dict['path_range'])
 path_list = list(Paths_dict['path_list'].split(","))
 try:
 	path_optimize = str_to_bool(Paths_dict['path_optimize'])
+	path_optimize_percent = float(Paths_dict['path_optimize_percent'])
 except KeyError:
 	path_optimize = False
+	path_optimize_percent = 0.01
 
 # Larch Paths
 Kmin = float(Larch_dict['kmin'])
@@ -61,6 +63,6 @@ bkgkmax = float(Larch_dict['bkgkmax'])
 printgraph = str_to_bool(Outputs_dict['print_graph'])
 num_output_paths = str_to_bool(Outputs_dict['num_output_paths'])
 try:
-	steady_state = str_to_bool(Outputs_dict['steady_state'])
+	steady_state = str_to_bool(Outputs_dict['steady_state_exit'])
 except KeyError:
 	steady_state = False
