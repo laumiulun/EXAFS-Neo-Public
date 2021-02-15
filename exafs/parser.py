@@ -11,6 +11,7 @@ def CheckKey(dict, key_list):
         except KeyError:
             raise KeyError(str(key_list[i]) + ' is missing')
             # break
+            
 def CheckOptionalKey(dict,optional_key_list):
 	optional_key = []
 	for i in range(len(optional_key_list)):
@@ -39,7 +40,9 @@ def read_input_file(input_file,verbose=False):
 
     # Checking for minimum inputs
     input_min = ['csv_file','output_file','feff_file']
+    input_optional = ['num_compounds']
     CheckKey(Inputs_dict,input_min)
+    input_missing = CheckOptionalKey(Inputs_dict,input_optional)
 
     population_min = ['population','num_gen','best_sample','lucky_few']
     CheckKey(Populations_dict,population_min)
@@ -48,7 +51,7 @@ def read_input_file(input_file,verbose=False):
     CheckKey(Mutations_dict,mutation_min)
 
     path_min = ['path_range','path_list','individual_path']
-    path_optional = ['path_optimize','optimize_percent']
+    path_optional = ['path_optimize','optimize_percent','optimize_only']
     CheckKey(Paths_dict,path_min)
     path_missing = CheckOptionalKey(Paths_dict,path_optional)
 

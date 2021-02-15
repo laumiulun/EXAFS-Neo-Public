@@ -1,15 +1,22 @@
 from .pathObj import PathObject
 from larch_plugins.xafs import feffdat
-
+"""
+Construct individuals for the GA
+"""
 class Individual(PathObject):
-    def __init__(self,npaths,pathDictionary,pathrange_Dict,pathlists,e0):
+    def __init__(self,npaths,pathDictionary,pathrange_Dict,pathlists,e0,pathName):
+        """
+        Definition:
+            npaths = number of paths
+            path_lists = the paths lists (can be 2D depends number of feff)
+            pathname = the paths identifier
+        """
         self.npaths = npaths
-        self.Population = []
         self.path_lists = pathlists
+        self.pathname = pathName
+        self.Population = []
         self.pathDictionary = pathDictionary
-        # self.pathrange_Dict
-        # self.path_lists = path_lists
-        # self.pathrange
+
         for pathrange in pathrange_Dict:
             # self.Population.append(PathObject(rangeS02,e0,rangeSigma2,rangeDeltaR,i))
             self.Population.append(PathObject(pathrange,e0))
@@ -46,8 +53,8 @@ class Individual(PathObject):
     def verbose_yTotal(self,intervalK):
         yTotal = [0]*(401)
         for i in range(self.npaths):
-            pathName = 'Path' + self.path_lists[i]
-            path = self.pathDictionary.get(pathName)
+
+            path = self.pathDictionary.get(self.pathname[i])
             Individual = self.get()
             path.e0 = Individual[i][1]
             path.s02 = Individual[i][0]

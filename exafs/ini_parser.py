@@ -1,11 +1,75 @@
 from .input_arg import *
 from .helper import *
-# ------------------------------------
-# Andy Lau
-# 4/22/2019
-# goal : Parsed the ini into each specific documents.
-#-------------------------------------
-# print(file_dict)
+"""
+Author: Andy Lau
+Last Updated: 1/19/2021
+
+Changes:
+
+2/8/2021: Andy:
+	- Function defintion for arr to be in 2D
+
+1/20/2021: Andy:
+	- Function definition for optional parameters.
+	- Changes to allows for multiple inputs folder.
+
+"""
+
+def split_path_arr(arr_str,num_compounds):
+	"""
+	Read the path list
+	"""
+	# print(num_compounds)
+	starter = []
+	end = []
+	k = 0
+	split_str = []
+	for i in arr_str:
+		if i == '[':
+			starter.append(k)
+		elif i == ']':
+			end.append(k)
+		k = k + 1
+
+	assert(len(starter) == len(end)),'Bracket setup not right.'
+	if num_compounds > 1:
+		assert(num_compounds == len(starter)),'Number of compounds not matched.'
+		assert(num_compounds == len(end)),'Number of compounds not matched.'
+
+	# check if both are zeros, therefore the array is one 1 dimensions
+	if len(starter) == 0 and len(end) == 0:
+	# print("1D array only")
+		split_str = list(arr_str.split(","))
+	else:
+	# # print("2D array")
+		for i in range(len(starter)):
+			split_str.append(arr_str[starter[i]+1:end[i]].split(","))
+
+	  # print(arr_str[starter[i]+1:end[i]].split(","))
+
+
+	return split_str
+
+def optional_var(dict,name_var,alt_var,type_var):
+	"""
+	Detections of optional variables exists within input files, and
+		put in corresponding default inputs parameters.
+
+	"""
+	# boolean needs special attentions
+	if type_var == bool:
+		if name_var in dict:
+			return_var = str_to_bool(dict[name_var])
+		else:
+			return_var = alt_var
+	else:
+		if name_var in dict:
+			return_var = type_var(dict[name_var])
+		else:
+			return_var = type_var(alt_var)
+
+	return return_var
+
 Inputs_dict = file_dict['Inputs']
 Populations_dict = file_dict['Populations']
 Mutations_dict = file_dict['Mutations']
@@ -13,17 +77,25 @@ Paths_dict = file_dict['Paths']
 Larch_dict = file_dict['Larch_Paths']
 Outputs_dict = file_dict['Outputs']
 
-# Input
+# Inputs
+num_compounds = optional_var(Inputs_dict,'num_compounds',1,int)
+
 csv_file = Inputs_dict['csv_file']
 output_file = Inputs_dict['output_file']
-feff_file = Inputs_dict['feff_file']
+
+# Compounds
+if num_compounds > 1:
+	try:
+		feff_file = list(Inputs_dict['feff_file'].split(","))
+	except:
+		print("Feff folder is not correct")
+else:
+	feff_file = Inputs_dict['feff_file']
 
 try:
 	csv_series = str_to_bool(Inputs_dict['csv_series'])
 	if csv_series == True:
-		# print(csv_file)
 		csv_file = list(Inputs_dict['csv_file'].split(","))
-		# print(type(csv_file))
 except KeyError:
 	csv_series = False
 
@@ -40,15 +112,32 @@ chance_of_mutation_e0 = int(Mutations_dict['chance_of_mutation_e0'])
 mutated_options = int(Mutations_dict['mutated_options'])
 
 # Paths
-individual_path = str_to_bool(Paths_dict['individual_path'])
-pathrange = int(Paths_dict['path_range'])
-path_list = list(Paths_dict['path_list'].split(","))
+if num_compounds > 1:
+	individual_path = True
+else:
+	individual_path = str_to_bool(Paths_dict['individual_path'])
+	pathrange = int(Paths_dict['path_range'])
+
+# path_list = list(Paths_dict['path_list'].split(","))
+
+try:
+	optimize_only = str_to_bool(Paths_dict['optimize_only'])
+except KeyError:
+	optimize_only = False
+
 try:
 	path_optimize = str_to_bool(Paths_dict['path_optimize'])
-	path_optimize_percent = float(Paths_dict['path_optimize_percent'])
 except KeyError:
 	path_optimize = False
+
+try:
+	path_optimize_percent = float(Paths_dict['path_optimize_percent'])
+except KeyError:
 	path_optimize_percent = 0.01
+
+path_list = split_path_arr(Paths_dict['path_list'],num_compounds)
+path_optimize = optional_var(Paths_dict,'path_optimize',False,bool)
+path_optimize_percent = optional_var(Paths_dict,'path_optimize_percent',0.01,float)
 
 # Larch Paths
 Kmin = float(Larch_dict['kmin'])
@@ -62,7 +151,4 @@ bkgkmax = float(Larch_dict['bkgkmax'])
 # Output
 printgraph = str_to_bool(Outputs_dict['print_graph'])
 num_output_paths = str_to_bool(Outputs_dict['num_output_paths'])
-try:
-	steady_state = str_to_bool(Outputs_dict['steady_state_exit'])
-except KeyError:
-	steady_state = False
+steady_state = optional_var(Outputs_dict,'steady_state_exit',False,bool)
