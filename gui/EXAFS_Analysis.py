@@ -345,6 +345,47 @@ class EXAFS_Analysis:
             ax.set_xticklabels(self.label,rotation=70)
             ax.bar(np.arange(len(self.full_mat_diag)),np.sqrt(self.full_mat_diag))
             fig_gui.tight_layout()
+
+    def calculate_occurances(self,folder_name,limits=20):
+        def log_files(folder,og_paths):
+            # calculate the number of log for each path optimizaiton
+            files = []
+            for r, d, f in os.walk(folder):
+                f.sort(key = natural_keys)
+                for file in f:
+                    # if re.search('test_\d+_data.csv',file):
+                    if fnmatch.fnmatch(file,'*.log'):
+                        files.append(os.path.join(r, file))
+
+            occ_list = np.zeros(og_paths)
+            for i in range(len(files)):
+                with open(files[i]) as f:
+                    for line in f:
+                        if 'New Paths:' in line:
+                            list_str = list(line[12:-2].split())
+                            list_str = np.array(list(map(int,list_str)))
+                            occ_list[list_str-1] += 1
+
+            return occ_list
+        self.occ_list = log_files(folder_name,len(self.paths))
+        j2 = np.argwhere(self.occ_list > limits)
+        print(repr(j2.flatten()+1))
+        # return occ_list
+
+    def plot_occ_list(self,fig_gui=None):
+        # print(self.paths)
+        if fig_gui == None:
+            plt.figure(figsize=(8,5))
+            plt.xticks(self.paths);
+            plt.bar(self.paths,self.occ_list)
+        else:
+            ax = fig_gui.add_subplot(111)
+            # ax.xticks
+            ax.set_xticks(self.paths)
+            # ax.set_xticklabels(self.label,rotation=70)
+            ax.bar(self.paths,self.occ_list)
+            fig_gui.tight_layout()
+
     def paths_optimizations(self,number=0.01,verbose=False):
         r"""
         Paths optimizations using simpsons area calculation.
