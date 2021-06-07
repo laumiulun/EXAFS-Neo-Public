@@ -264,12 +264,12 @@ class EXAFS_Analysis:
         self.latex_table_str = latex_table_str
         if print_table:
             print(self.latex_table_str)
-    def individual_fit(self,plot=False):
+    def individual_fit(self,plot=False,fig_gui=None):
         r"""
         Perform fittness calculation separately for each paths
         """
         # path,yTotal,best,loss,export_paths=larch_score.fitness_individal(self.exp,self.best_Fit,self.paths,self.params,export=True,plot=True)
-        path,yTotal,best,loss,export_paths = larch_score.fitness_individal(self.exp,self.bestFit_mat,self.paths,self.params,export=True,plot=plot)
+        path,yTotal,best,loss,export_paths = larch_score.fitness_individal(self.exp,self.bestFit_mat,self.paths,self.params,export=True,plot=plot,fig_gui=fig_gui)
         self.ind_export_paths = export_paths
 
     def write_latex_csv(self,file_name=''):
@@ -450,9 +450,19 @@ class EXAFS_Analysis:
 
         ## Offset
         # offset first two is designated number
-        f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
-        f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
-        f.write('•ModifyGraph offset(path_' + str(self.paths[2]) + '_' + self.header + '_chi2)={0,12.5}');f.write('\n')
+        # Todo:
+            # Need to redesign this later!
+
+        if len(self.paths) < 3:
+            if len(self.paths) == 1:
+                f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+            elif len(self.paths) == 2:
+                        f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+                        f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')                
+        else:
+            f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+            f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
+            f.write('•ModifyGraph offset(path_' + str(self.paths[2]) + '_' + self.header + '_chi2)={0,12.5}');f.write('\n')
 
         # offset the rest
         for i in range(len(self.paths)-3):

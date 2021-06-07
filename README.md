@@ -1,6 +1,6 @@
 # EXAFS Neo
-#### Versions: 0.9.5
-#### Last update: Feb 9, 2021
+#### Versions: 0.9.6
+#### Last update: June 7, 2021
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
@@ -23,7 +23,7 @@ To install EXAFS Neo, simply clone the repo:
 
         git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
         cd EXAFS-Neo-Public/
-        python setup.py install
+        pip install .
 
 ## Usage:
 To run a sample test, make sure the enviornment is set correctly, and select a input file:
@@ -34,14 +34,15 @@ To run a sample test, make sure the enviornment is set correctly, and select a i
 EXAFS Neo is under active development, to update the code after pulling from the repository:
 
         git pull --rebase
-        python setup.py install
+        pip install .
 
 ## GUI
-We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post
-analysis. To use the GUI:
+We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post-analysis. To use the GUI:
 
         cd gui
         python XAFS_GUI.py
+
+The GUI contains helper function which
 
 ## Potential Errors
 If you get an error message involving psutl, make sure you are in the right conda environment and reinstall psutl and xraylarch:
@@ -51,8 +52,10 @@ If you get an error message involving psutl, make sure you are in the right cond
         conda install -yc GSECARS xraylarch
 
 ## Video Demonstration
-You can see a video demonstration of the EXAFS Neo package presented at the Canadian Light Source.
-https://youtu.be/jqISqq_FFR8
+You can see a list of video demonstrations of the EXAFS Neo package presented, future presentation related to this software will be posted as they are available
+
+- https://youtu.be/KwhItvwhapg [Feb 15, 2021] (University of Washington)
+- https://youtu.be/jqISqq_FFR8 [Dec 10, 2020] (Canadian Light Source)
 
 ## Citation:
 

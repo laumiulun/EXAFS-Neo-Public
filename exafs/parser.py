@@ -1,5 +1,4 @@
 # Parser for Inputs files
-
 import os
 import configparser
 from .helper import bcolors
@@ -11,7 +10,7 @@ def CheckKey(dict, key_list):
         except KeyError:
             raise KeyError(str(key_list[i]) + ' is missing')
             # break
-            
+
 def CheckOptionalKey(dict,optional_key_list):
 	optional_key = []
 	for i in range(len(optional_key_list)):
@@ -48,7 +47,9 @@ def read_input_file(input_file,verbose=False):
     CheckKey(Populations_dict,population_min)
 
     mutation_min = ['chance_of_mutation','original_chance_of_mutation','chance_of_mutation_e0','mutated_options']
+    # mutation_optional = ['crossover']
     CheckKey(Mutations_dict,mutation_min)
+    # mut_optional = CheckOptionalKey(Mutations_dict,mutation_optional)
 
     path_min = ['path_range','path_list','individual_path']
     path_optional = ['path_optimize','optimize_percent','optimize_only']
@@ -83,7 +84,6 @@ def print_input_file(file_dict):
         print("[" +bcolors.BOLD + str(key)+ bcolors.ENDC +"]")
         for inner_key,inner_value in value.items():
             print('---'  +  inner_key + ": " +inner_value)
-
 
 ## Need to run some sample:
 # if __name__ == '__main__':

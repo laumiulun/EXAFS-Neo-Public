@@ -77,7 +77,6 @@ class EXAFS_GA:
         self.mut_opt = mutated_options
         self.mut_chance = chance_of_mutation
         self.mut_chance_e0 = chance_of_mutation_e0
-
         # Crosover Parameters
         self.n_bestsam = int(best_sample*self.npops*(0.01))
         self.n_lucksam = int(lucky_few*self.npops*(0.01))
@@ -106,11 +105,7 @@ class EXAFS_GA:
         else:
             self.front = os.path.join(self.base,feff_file)
 
-        # if path_optimize:
-            # self.output_path =
         if self.csv_series == True:
-            # Data paths = exp file
-            # output paths =
             self.data_path = os.path.join(self.base,csv_file[i])
             self.output_path = os.path.splitext(os.path.join(self.base,output_file))[0] + "_" + str(i) + ".csv"
             self.log_path = os.path.splitext(copy.deepcopy(self.output_path))[0] + ".log"
@@ -127,6 +122,7 @@ class EXAFS_GA:
         self.check_output_file(self.output_path)
         if not firstpass:
             self.check_if_exists(self.log_path)
+
         # Initialize logger
         self.logger = logging.getLogger('')
         # Delete handler
@@ -155,7 +151,7 @@ class EXAFS_GA:
 
     def check_output_file(self,file):
         """
-        check if the output file for each of the file
+        check if the output file for each file, assumes equality.
         """
         file_base= os.path.splitext(file)[0]
         self.check_if_exists(file)
@@ -166,18 +162,20 @@ class EXAFS_GA:
         self.file_initial.close()
 
         # Not using right now
+        """
         # file_score = os.path.splitext(file)[0] + '_score.csv'
         # self.check_if_exists(file_score)
         # self.file_score = file_score
-
+        """
         file_data = os.path.splitext(file)[0] + '_data.csv'
         self.check_if_exists(file_data)
         self.file_data = file_data
 
         # Not using right now
+        """
         # file_gen = os.path.splitext(file)[0] + '_generations.csv'
         # self.check_if_exists(file_gen)
-
+        """
     def initialize_range(self,i=0,BestIndi=None):
         """
         Initalize range
@@ -192,12 +190,6 @@ class EXAFS_GA:
             for i in range(self.npaths):
                 self.pathrange_Dict.append(Pathrange_limits(i))
 
-            # self.dt_S02 = [0.01,2]
-            # self.dt_Sigma2 = [0.001,3]
-
-            # self.dt_DeltaR = [0.01,2]
-            # sys.exit()
-            # self.rangeS02 = (np.linspace(5, 95, 91) * 0.01)  # <- should be separate
             self.rangeE0 = (np.linspace(-100, 100, 201) * 0.01) # <- e0, for everything
             self.rangeE0_large = (np.linspace(-600, 600, 1201) * 0.01)  # <- Larger range B
 
@@ -205,7 +197,6 @@ class EXAFS_GA:
             for k in range(self.npaths):
                 path_bestfit = BestIndi.get_path(k)
                 self.pathrange_Dict[k].mod_s02(path_bestfit[0])
-                # self.pathrange_Dict[k].mod_e0(path_bestfit[1])
                 self.pathrange_Dict[k].mod_sigma2(path_bestfit[2])
                 self.pathrange_Dict[k].mod_deltaR(path_bestfit[3])
 
@@ -228,12 +219,9 @@ class EXAFS_GA:
             autobk(self.best, rbkg=rbkg, _larch=self.mylarch)
             autobk(self.sumgroup, rbkg=rbkg, _larch=self.mylarch)
 
-
     def initialize_paths(self):
         """
-        Initalize paths
-        # Not being used right now
-        To do: Need to adjust this for multiple compounds
+        Initalized Paths for each scattering
         """
         self.e0 = np.random.choice(self.rangeE0)
         if self.ncomp == 1:
@@ -242,8 +230,7 @@ class EXAFS_GA:
                                                         self.e0,
                                                         self.rangeSigma2,
                                                         self.rangeDeltaR)
-        # else:
-        #     for i,paths in enumerate(path_list):
+
     def loadPaths(self):
         """
         Load paths:
@@ -277,13 +264,19 @@ class EXAFS_GA:
                     self.pathDictionary.update({pathName: feffdat.feffpath(filename, _larch=self.mylarch)})
 
     def generateIndividual(self,e0=None):
+        """
+        Generate Individuals using a random choice
+        """
         if self.secondhalf == False:
             e0 = np.random.choice(self.rangeE0)
-        # print(self.pathrange_Dict)
+
         ind = Individual(self.npaths,self.pathDictionary,self.pathrange_Dict,self.path_lists,e0,self.pathname)
         return ind
 
     def generateFirstGen(self):
+        """
+        Generated Initial Generation
+        """
         self.Populations=[]
         for i in range(self.npops):
             self.Populations.append(self.generateIndividual())
@@ -293,7 +286,6 @@ class EXAFS_GA:
         """
         Evaluate fitness of a individual
         """
-        # from larch_plugins.xafs import feffdat
         # t1 = time.time()
         loss = 0
         yTotal = [0] * (401)
@@ -361,7 +353,6 @@ class EXAFS_GA:
 
     def next_generation(self,detect_limits=False):
         self.st = time.time()
-        # ray.init()
         self.logger.info("---------------------------------------------------------")
         self.logger.info(datetime.datetime.fromtimestamp(self.st).strftime('%Y-%m-%d %H:%M:%S'))
         self.logger.info(f"{bcolors.BOLD}Gen: {bcolors.ENDC}{self.genNum+1}")
@@ -372,35 +363,18 @@ class EXAFS_GA:
         score = self.eval_Population()
 
         self.bestDiff = abs(self.globBestFit[1]-self.currBestFit[1])
-        # print(self.bestDiff)
         if self.currBestFit[1] < self.globBestFit[1]:
             self.globBestFit = self.currBestFit
 
         # detecting if limits is hit on the bestfit
-        # if detect_limits:
-            # self.detect_and_adjust_limits()
-        # Rechenberg mutation
-        if self.genNum > 20:
-            if self.bestDiff < 0.1:
-                self.diffCounter += 1
-            else:
-                self.diffCounter -= 1
-            if (abs(self.diffCounter)/ float(self.genNum)) > 0.2:
-                self.mut_chance += 2.5
-                self.mut_chance = abs(self.mut_chance)
-            elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
-                self.mut_chance -= 2.5
-                self.mut_chance = abs(self.mut_chance)
-            # elif self.mut_chance > 100:
-                # self.mut_chance -= 20
+
         self.logger.info(f"Best Fit: {bcolors.BOLD}{self.sorted_population[0][1].round(3)}{bcolors.ENDC}")
         self.logger.info("2nd Fit: " + str(self.sorted_population[1][1].round(3)))
         self.logger.info("3rd Fit: " + str(self.sorted_population[2][1].round(3)))
         self.logger.info("4th Fit: " + str(self.sorted_population[3][1].round(3)))
         self.logger.info("Last Fit: " + str(self.sorted_population[-1][1].round(3)))
-        # sys.exit()
+
         with np.printoptions(precision=3, suppress=True):
-            # print(self.intervalK)
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
             self.logger.info(bcolors.BOLD + "Best fit: " + bcolors.OKBLUE + str(self.currBestFit[1]) + bcolors.ENDC)
             CurrchiR = str(self.currBestFit[1]/(len(self.intervalK)-3*self.npaths+1))
@@ -435,6 +409,9 @@ class EXAFS_GA:
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
 
     def detect_and_adjust_limits(self):
+        """
+        On development
+        """
         best_Fit = self.globBestFit[0].get()
 
         for i in range(len(self.pathrange_Dict)):
@@ -442,7 +419,6 @@ class EXAFS_GA:
 
             self.logger.info(best_Fit[i,0])
 
-            # if temp_range[0] == bestFit[i]
         exit()
 
     def check_steady_state(self):
@@ -467,10 +443,24 @@ class EXAFS_GA:
         self.nmutate = 0
 
         if self.mut_opt == 0:
-            for i in range(self.npops):
-                if random.random()*100 < self.mut_chance:
-                    self.nmutate += 1
-                    self.Populations[i] = self.mutateIndi()
+            # Rechenberg mutation
+            if self.genNum > 20:
+                if self.bestDiff < 0.1:
+                    self.diffCounter += 1
+                else:
+                    self.diffCounter -= 1
+                if (abs(self.diffCounter)/ float(self.genNum)) > 0.2:
+                    self.mut_chance += 2.5
+                    self.mut_chance = abs(self.mut_chance)
+                elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
+                    self.mut_chance -= 2.5
+                    self.mut_chance = abs(self.mut_chance)
+            # Mutation
+        for i in range(self.npops):
+            if random.random()*100 < self.mut_chance:
+                self.nmutate += 1
+                self.Populations[i] = self.mutateIndi(i)
+
         if self.secondhalf == False:
             if random.random() * 100 < self.mut_chance_e0:
                 e0 = random.choice(self.rangeE0)
@@ -478,48 +468,22 @@ class EXAFS_GA:
                 for individual in self.Populations:
                     individual.set_e0(e0)
 
-
-        # if self.mut_opt == 1:
-
         self.logger.info("Mutate Times: " + str(self.nmutate))
-        """
-        if mutated_options == 1:
-            for i in range(len(population)):
-                for j in range(len(population[i])):
-                    if random.random() * 100 < chance_of_mutation:
-                        mutateTime += 1
-                        if j == 0:
-                            mutate_val = random.choice(rangeA)
-                            population[i][j] == mutate_val
-                        if j == 2:
-                            mutate_val = random.choice(rangeC)
-                            population[i][j] == mutate_val
-                        if j == 3:
-                            mutate_val = random.choice(rangeD)
-                            population[i][j] == mutate_val
 
-        if mutated_options == 2:
-            for i in range(len(population)):
-                if random.random() * 100 < chance_of_mutation:
-                    for j in range(len(population[i])):
-                        if random.random() * 100 < chance_gene_mut:
-                            mutateTime += 1
-                            if j == 0:
-                                mutate_val = random.choice(rangeA)
-                                population[i][j] == mutate_val
-                            if j == 2:
-                                mutate_val = random.choice(rangeC)
-                                population[i][j] == mutate_val
-                            if j == 3:
-                                mutate_val = random.choice(rangeD)
-                                population[i][j] == mutate_val
-        """
-
-    def mutateIndi(self):
+    def mutateIndi(self,indi):
         """
         Generate new individual during mutation operator
         """
-        mutatIndi = self.generateIndividual(self.bestE0)
+        if self.mut_opt == 0:
+            # Create a new individual with Rechenberg
+            mutatIndi = self.generateIndividual(self.bestE0)
+        # Random pertubutions
+        if self.mut_opt == 1:
+            # Random Pertubutions
+            self.Populations[indi].mutate_paths(self.mut_chance)
+            mutatIndi = self.Populations[indi]
+            # Mutate every gene in the Individuals
+
         return mutatIndi
 
     def selectFromPopulation(self):
@@ -565,7 +529,6 @@ class EXAFS_GA:
         contrib = []
 
         for i, (key, value) in enumerate(self.pathDictionary.items()):
-            # print(index, key, value)
 
             path = feffdat.feffpath(value.filename, s02=str(arr[i, 0]), e0=str(arr[i, 1]),
                                     sigma2=str(arr[i, 2]), deltar=str(arr[i, 3]), _larch=self.mylarch)
@@ -851,12 +814,5 @@ class EXAFS_GA:
                 self.run(detect_limits=True)
 
 def main():
-    # from .helper import *
-    # from .input_arg import *
-    # from .import_lib import *
-    # from .parser import read_input_file
-    # from .ini_parser import *
-    # from .initialization import loadPaths
-    # from .exafs import *
 
     EXAFS_GA()

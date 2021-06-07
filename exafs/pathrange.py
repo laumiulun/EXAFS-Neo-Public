@@ -16,7 +16,7 @@ class Pathrange_limits():
         self.rangeE0 = (np.arange(-1,1.01,0.01))
         # self.rangeE0_large = (np.linspace(-600, 600, 1201) * 0.01)  # <- Larger range B
         self.rangeSigma2 = (np.arange(0.001,0.016,0.001)) # <- should be separate
-        self.rangeDeltaR = np.arange(-0.1,0.11,0.01)
+        self.rangeDeltaR = (np.arange(-0.1,0.11,0.01))
         self.rangeS02 = np.insert(self.rangeS02,0,0)
 
         self.glob_rangeS02 = copy.deepcopy(self.rangeS02)

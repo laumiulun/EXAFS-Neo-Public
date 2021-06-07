@@ -8,17 +8,20 @@ class Individual(PathObject):
         """
         Definition:
             npaths = number of paths
+            pathDictionary = <dict> path name, and their corresponding paths.dat
+            pathrange_Dict = <list> pathrange_limits
             path_lists = the paths lists (can be 2D depends number of feff)
+            e0 = qunatum e0 of the individuals
             pathname = the paths identifier
         """
         self.npaths = npaths
         self.path_lists = pathlists
         self.pathname = pathName
         self.Population = []
+        self.pathrange_Dict = pathrange_Dict
         self.pathDictionary = pathDictionary
 
-        for pathrange in pathrange_Dict:
-            # self.Population.append(PathObject(rangeS02,e0,rangeSigma2,rangeDeltaR,i))
+        for pathrange in self.pathrange_Dict:
             self.Population.append(PathObject(pathrange,e0))
 
     def get(self):
@@ -50,6 +53,10 @@ class Individual(PathObject):
         for i in range(self.npaths):
             self.Population[i].set_e0(e0)
 
+    def mutate_paths(self,chance):
+        for path in self.Population:
+            path.mutate(chance)
+
     def verbose_yTotal(self,intervalK):
         yTotal = [0]*(401)
         for i in range(self.npaths):
@@ -66,4 +73,3 @@ class Individual(PathObject):
                 yTotal[int(k)] += y[int(k)]
 
         return yTotal
-        # Verbose the y total

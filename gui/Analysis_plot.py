@@ -11,12 +11,12 @@ class Analysis_Plot:
         self.fig = Figure(figsize=(3.5,3.5), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.fig, master=frame)
         # Create inital figure canvas
-        self.canvas.get_tk_widget().grid(column=0,row=10,columnspan=3,sticky="nsew",
+        self.canvas.get_tk_widget().grid(column=0,row=10,columnspan=4,sticky="nsew",
             padx = 5,pady=5)
         self.ax = self.fig.add_subplot(111)
         # create toolbar
         self.toolbarFrame = tk.Frame(master=frame)
-        self.toolbarFrame.grid(column=0,row=11,columnspan=3,sticky="nsew")
+        self.toolbarFrame.grid(column=0,row=11,columnspan=4,sticky="nsew")
         toolbar = NavigationToolbar2Tk(self.canvas, self.toolbarFrame)
         self.params = {}
 
@@ -50,6 +50,11 @@ class Analysis_Plot:
         self.EXAFS_Analysis.plot(fig_gui=self.fig)
         self.canvas.draw()
 
+    def plot_individual(self):
+        self.fig.clf()
+        self.EXAFS_Analysis.individual_fit(fig_gui=self.fig)
+        self.canvas.draw()
+        
     def plot_error(self):
         self.fig.clf()
         self.EXAFS_Analysis.plot_error(fig_gui=self.fig)

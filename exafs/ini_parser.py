@@ -19,7 +19,6 @@ def split_path_arr(arr_str,num_compounds):
 	"""
 	Read the path list
 	"""
-	# print(num_compounds)
 	starter = []
 	end = []
 	k = 0
@@ -45,9 +44,6 @@ def split_path_arr(arr_str,num_compounds):
 		for i in range(len(starter)):
 			split_str.append(arr_str[starter[i]+1:end[i]].split(","))
 
-	  # print(arr_str[starter[i]+1:end[i]].split(","))
-
-
 	return split_str
 
 def optional_var(dict,name_var,alt_var,type_var):
@@ -67,7 +63,6 @@ def optional_var(dict,name_var,alt_var,type_var):
 			return_var = type_var(dict[name_var])
 		else:
 			return_var = type_var(alt_var)
-
 	return return_var
 
 Inputs_dict = file_dict['Inputs']
@@ -79,7 +74,6 @@ Outputs_dict = file_dict['Outputs']
 
 # Inputs
 num_compounds = optional_var(Inputs_dict,'num_compounds',1,int)
-
 csv_file = Inputs_dict['csv_file']
 output_file = Inputs_dict['output_file']
 
@@ -117,8 +111,6 @@ if num_compounds > 1:
 else:
 	individual_path = str_to_bool(Paths_dict['individual_path'])
 	pathrange = int(Paths_dict['path_range'])
-
-# path_list = list(Paths_dict['path_list'].split(","))
 
 try:
 	optimize_only = str_to_bool(Paths_dict['optimize_only'])

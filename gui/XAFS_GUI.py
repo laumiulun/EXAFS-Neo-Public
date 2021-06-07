@@ -1,8 +1,8 @@
 """
 Authors    Matthew Adas, Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
 Email      madas@hawk.iit.edu, andylau@u.boisestate.edu
-Version    0.1
-Date       Feb 12, 2021
+Version    0.1.1
+Date       Feb 24, 2021
 
 Please start the program within the "gui" directory, or "select file" buttons won't start the user in EXAFS.
 "Select Directory" button starts the user in EXAFS/path_files/Cu
@@ -37,6 +37,7 @@ from matplotlib.figure import Figure
 import EXAFS_Analysis
 from Background_plot import BKG_plot
 from Analysis_plot import Analysis_Plot
+from feff_folder_larch import *
 
 class Console():
     def __init__(self,tkFrame,command):
@@ -120,8 +121,6 @@ class App():
         img = PhotoImage(file=icon_loc)
         self.root.tk.call('wm','iconphoto',self.root._w,img)
 
-
-
         # Set default font
         self.entryFont = Font(family="TkFixedFont", size=10)
         self.menuFont = Font(family="TkMenuFont",size=10)
@@ -130,11 +129,9 @@ class App():
         self.mainframe = ttk.Notebook(self.root,height=40,padding="5")
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 
-
         # Initalize variable
         self.initialize_var()
         self.initialize_tab()
-
         self.Build_tabs()
 
     def initialize_var(self):
@@ -235,6 +232,7 @@ class App():
             description_list.append(entry)
         if description_list:
             return description_list
+
     def Build_tabs(self):
         """
         Build tabs
@@ -249,8 +247,7 @@ class App():
         self.Build_background_tab()
         self.Build_output_tab()
         self.Build_analysis_tab()
-        # self.Build_expert_tab()
-        # self.Build_about()
+        self.Build_expert_tab()
 
         self.mainframe.grid_rowconfigure(0,weight=1)
         self.mainframe.grid_columnconfigure(0,weight=1)
@@ -514,15 +511,41 @@ class App():
 
             self.feff_description_list = self.description_tabs(self.arr_feff,self.tab_Inputs,row=arr_row,return_description=True)
 
+        def check_feff_folder(pathlib_Path):
+            feff_inp_exists = False
+            num_feff_file = 0
+            folder_Path = pathlib.Path(pathlib_Path)
+            for i in folder_Path.iterdir():
+                file = pathlib.Path(i).name
+                if fnmatch.fnmatch(file,'feff????.dat'):
+                    num_feff_file +=1
+
+            if num_feff_file == 0:
+                # Check no scattering paths
+                for i in folder_Path.iterdir():
+                    file = pathlib.Path(i).name
+                    if fnmatch.fnmatch(file,'feff.inp'):
+                        feff_inp_exists = True
+                        feff_inp_loc = file
+                abs_feff_inp_loc = folder_Path.joinpath('feff.inp')
+                create_feff_folder(abs_feff_inp_loc)
+            else:
+                # self.txtbox.insert('No feff.inp in folder')
+                self.txtbox.insert(tk.END,"No feff.inp in folder\n")
+
+                # return False
         def select_feff_folder(var):
             os.chdir("..") #change the working directory from gui to EXAFS
+            # select folder name
             folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
 
             if not folder_name:
                 var.set('Please choose a directory')
             else:
+                check_feff_folder(folder_name)
                 folder_name = os.path.join(folder_name,'feff')
                 var.set(folder_name)
+
 
             os.chdir("gui")
 
@@ -953,38 +976,55 @@ class App():
         analysis_folder = StringVar(self.tab_Analysis,'Please choose a directory')
         series_index = IntVar(self.tab_Analysis,0)
         self.tab_Analysis.columnconfigure(1,weight=1)
+        self.tab_Analysis.columnconfigure(2,weight=1)
         self.tab_Analysis.rowconfigure(10,weight=1)
 
         arr_out = ["Select folder"]
         self.description_tabs(arr_out,self.tab_Analysis)
 
         entry_analysis_folder = tk.Entry(self.tab_Analysis,textvariable=analysis_folder,font=self.entryFont)
-        entry_analysis_folder.grid(column=1,row=0,sticky=(W,E),padx=self.padx,pady=self.pady)
+        entry_analysis_folder.grid(column=1,row=0,columnspan=2,sticky=W+E,padx=self.padx,pady=self.pady)
 
         button_analysis_folder = ttk.Button(self.tab_Analysis,text="Choose",
                 command=select_analysis_folder, style='my.TButton')
-        button_analysis_folder.grid(column=2, row=0, sticky=W,padx=self.padx,pady=self.pady)
+        button_analysis_folder.grid(column=3, row=0, sticky=W+E,padx=self.padx,pady=self.pady)
 
         separator = ttk.Separator(self.tab_Analysis, orient='horizontal')
         separator.grid(column=0, row=1,columnspan=4,sticky=W+E,padx=self.padx)
 
         analysis_plot = Analysis_Plot(self.tab_Analysis,self.mylarch)
 
+        # ----------------------------------------------------------------------
         button_Run_Analysis = ttk.Button(self.tab_Analysis,text="Run Analysis",
                 command=run_analysis, style='my.TButton')
-        button_Run_Analysis.grid(column=0, row=2,columnspan=3, sticky=W+E,padx=self.padx,pady=self.pady)
+        button_Run_Analysis.grid(column=0, row=2,columnspan=4, sticky=W+E,padx=self.padx,pady=self.pady)
 
-        button_plot_error = ttk.Button(self.tab_Analysis,text="Plot K and R Spectrum",
+        button_plot_kR = ttk.Button(self.tab_Analysis,text="Plot K and R Spectrum",
                 command=analysis_plot.plot_k_r_space, style='my.TButton')
-        button_plot_error.grid(column=0, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
+        button_plot_kR.grid(column=0, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
+
+        button_plot_individual = ttk.Button(self.tab_Analysis,text='Plot K Individual',
+                command=analysis_plot.plot_individual, style='my.TButton')
+        button_plot_individual.grid(column=1, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
+
 
         button_plot_error = ttk.Button(self.tab_Analysis,text="Plot Error",
                 command=analysis_plot.plot_error, style='my.TButton')
-        button_plot_error.grid(column=1, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
+        button_plot_error.grid(column=2, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
+
 
         button_plot_occurances = ttk.Button(self.tab_Analysis,text='Plot Occurances',
                 command=analysis_plot.plot_occurances, style='my.TButton')
-        button_plot_occurances.grid(column=2,row=3,columnspan=1,sticky=W+E,padx=self.padx,pady=self.pady)
+        button_plot_occurances.grid(column=3,row=3,columnspan=1,sticky=W+E,padx=self.padx,pady=self.pady)
+
+    def Build_expert_tab(self):
+        arr_muts = ["Override Num Compounds"]
+        self.description_tabs(arr_muts,self.tab_Expert)
+
+        ncomp_list = list(range(1,101))
+        entry_ncomp = ttk.Combobox(self.tab_Expert, width=7, values=ncomp_list,textvariable=self.ncomp, font=self.entryFont)
+        entry_ncomp.grid(column=1, row=0, sticky=(W, E),padx=self.padx)
+
 
     def On_closing(self):
         """

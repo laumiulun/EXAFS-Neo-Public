@@ -113,7 +113,7 @@ def fittness_score(CSV_loc,data,paths,plot=False):
 
 #Anction to calculate fitness
 
-def fitness_individal(exp,arr,paths,params,plot=False,export=False):
+def fitness_individal(exp,arr,paths,params,plot=False,export=False,fig_gui=None):
     r"""
     Fittness for individual score
     Inputs:
@@ -140,29 +140,28 @@ def fitness_individal(exp,arr,paths,params,plot=False,export=False):
     SMALL = params['SMALL']
     BIG = params['BIG']
     export_paths = np.zeros((2*len(paths),401))
+    if plot:
+        fig,ax = plt.subplots(ncols=1,nrows=1,figsize=(7,6))
+    if fig_gui !=None:
+        ax = fig_gui.add_subplot(111)
     for i in range(len(paths)):
         filename = front +str(paths[i]).zfill(4)+end
         path=feffdat.feffpath(filename, s02=str(arr[i,0]), e0=str(arr[i,1]), sigma2=str(arr[i,2]), deltar=str(arr[i,3]), _larch=mylarch)
 
         feffdat.path2chi(path, _larch=mylarch)
         if plot:
-            plt.figure()
-            plt.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(i))
-            plt.xlabel("k$^{2}$(Å$^{-1}$)")
-            plt.ylabel("k$^{2}$\chi(k)(Å$^{-2}$)$")
-            plt.ylim(-5,len(paths)*offset+offset)
-            plt.title('Paths: '+str(i))
-            # plt.title(str(i+1))
-            plt.xlim(0,Kmax+1)
+            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path: '+str(i))
+            ax.set_xlabel("k ($\AA^{-1}$)")
+            ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
+            ax.set_ylim(-10,len(paths)*offset+offset)
+            ax.set_xlim(0,Kmax+1)
 
-            # print(len(paths))
-            # plt.figure()
-            # plt.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(i))
-            # plt.xlabel("k$^{2}$(Å$^{-1}$)")
-            # plt.ylabel("k$^{2}$\chi(k)(Å$^{-2}$)$")
-            # # plt.ylim(-10,len(paths)*offset+offset)
-            # plt.xlim(0,Kmax+1)
-            # plt.show()
+        if fig_gui != None:
+            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(i))
+            ax.set_xlabel("k ($\AA^{-1}$)")
+            ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
+            ax.set_ylim(-10,len(paths)*offset+offset)
+            ax.set_xlim(0,Kmax+1)
 
         if export:
             export_paths[2*i,:] = path.k
@@ -178,11 +177,13 @@ def fitness_individal(exp,arr,paths,params,plot=False,export=False):
      kweight=KWEIGHT, group=best)
 
     offset=0
-    if plot:
-        plt.plot(path.k[SMALL:BIG], yTotal[SMALL:BIG]*path.k[SMALL:BIG]**2+offset,'b',label="Genetic Algorithm")
-    # plt.legend('loc = best')
-    # if export:
-        # export_paths = export.
+    if plot == True or fig_gui != None:
+        ax.plot(g.k,g.chi*g.k**2+offset,'r--',label='Data')
+        ax.plot(path.k[SMALL:BIG], yTotal[SMALL:BIG]*path.k[SMALL:BIG]**2+offset,'b--',label="GA")
+        ax.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+        fig_gui.tight_layout()
+
+
     for j in intervalK:
         #loss = loss + (yTotal[int(j)]*g.k[int(j)]**2 - exp[int(j)]*g.k[int(j)]**2)**2
         loss = loss + (yTotal[int(j)]*g.k[int(j)]**2 - exp[int(j)]*g.k[int(j)]**2)**2

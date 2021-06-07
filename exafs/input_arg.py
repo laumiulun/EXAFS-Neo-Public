@@ -6,8 +6,6 @@ parser.add_argument('-i','--input',help="Submit input file to EXAFS")
 parser.add_argument("-v","--verbose",help="output verbosity",action="store_true")
 parser.add_argument("-s","--show_input",help = "show input file",action="store_true")
 parser.add_argument("-t",help = "Timeing mode",action="store_true")
-
-
 args = parser.parse_args()
 
 if len(sys.argv)==1:

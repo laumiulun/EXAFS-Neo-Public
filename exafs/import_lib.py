@@ -4,7 +4,6 @@ from .input_arg import *
 from .helper import *
 
 if timeing_mode:
-# %matplotlib inline
     t1 = timecall()
 
 from psutil import cpu_count
