@@ -60,7 +60,7 @@ class EXAFS_GA:
             for i in range(len(self.path_lists)):
                 self.path_lists[i] = str(self.path_lists[i])
 
-        # Calcualte total number of paths
+        # Calculate total number of paths
         if self.ncomp > 1:
             self.npaths = 0
             for i in range(self.ncomp):
