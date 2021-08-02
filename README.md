@@ -1,6 +1,6 @@
 # EXAFS Neo
 #### Versions: 0.9.6
-#### Last update: June 7, 2021
+#### Last update: Jul 28, 2021
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
@@ -30,11 +30,23 @@ To run a sample test, make sure the enviornment is set correctly, and select a i
 
         exafs -i test/test.ini
 
+The datafile requires header contain at least either a combination of (k, chi) or (energy, mu). It also requires a minimum of one newline for it to work correctly. An example of the correct header is as follow:
+
+        #---------------------------------------------------------------------
+        #  k chi chik chik2 chik3 win energy
+
+## Self adsorption correction:
+EXAFS also provides a internal option to perform self-adsorption on the sample file using Booth et al correction. This is performed using git submodules:
+
+        git submodule update --init --recursive
+        cd contrib/sabcor/
+        make 
 ## Update:
 EXAFS Neo is under active development, to update the code after pulling from the repository:
 
         git pull --rebase
         pip install .
+
 
 ## GUI
 We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post-analysis. To use the GUI:
@@ -42,7 +54,6 @@ We also have provided a GUI for use in additions to our program, with additional
         cd gui
         python XAFS_GUI.py
 
-The GUI contains helper function which
 
 ## Potential Errors
 If you get an error message involving psutl, make sure you are in the right conda environment and reinstall psutl and xraylarch:

@@ -39,15 +39,15 @@ def read_input_file(input_file,verbose=False):
 
     # Checking for minimum inputs
     input_min = ['csv_file','output_file','feff_file']
-    input_optional = ['num_compounds']
+    input_optional = ['num_compounds','pathrange_file','sabcor_file']
     CheckKey(Inputs_dict,input_min)
     input_missing = CheckOptionalKey(Inputs_dict,input_optional)
 
     population_min = ['population','num_gen','best_sample','lucky_few']
     CheckKey(Populations_dict,population_min)
 
-    mutation_min = ['chance_of_mutation','original_chance_of_mutation','chance_of_mutation_e0','mutated_options']
-    # mutation_optional = ['crossover']
+    mutation_min = ['chance_of_mutation','original_chance_of_mutation','chance_of_mutation_e0']
+    mutation_optional = ['mutated_options','selection_options','crossover_options']
     CheckKey(Mutations_dict,mutation_min)
     # mut_optional = CheckOptionalKey(Mutations_dict,mutation_optional)
 

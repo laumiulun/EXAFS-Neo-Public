@@ -1,15 +1,15 @@
 """
 Authors    Matthew Adas, Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
-Email      madas@hawk.iit.edu, andylau@u.boisestate.edu
-Version    0.1.1
-Date       Feb 24, 2021
+Email      madas@hawk.iit.edu, andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
+Version    0.2.1
+Date       July 29, 2021
 
 Please start the program within the "gui" directory, or "select file" buttons won't start the user in EXAFS.
 "Select Directory" button starts the user in EXAFS/path_files/Cu
 """
 
 # Import Basic libraries
-import os,subprocess,queue,random,signal
+import os,subprocess,queue,random,signal,glob
 # import queue
 from pathlib import Path
 import numpy as np
@@ -23,8 +23,8 @@ from tkinter.font import Font
 from psutil import cpu_count
 os.environ['NUMEXPR_MAX_THREADS'] = str(cpu_count())
 # import Larch
-from larch.xafs import autobk, xftf
 import larch
+from larch.xafs import autobk, xftf
 from larch.io import read_ascii
 
 # import matplotlib for figures
@@ -38,65 +38,8 @@ import EXAFS_Analysis
 from Background_plot import BKG_plot
 from Analysis_plot import Analysis_Plot
 from feff_folder_larch import *
-
-class Console():
-    def __init__(self,tkFrame,command):
-
-
-        self.tkframe = tkFrame
-        self.p = subprocess.Popen(command,
-                                  stdout=subprocess.PIPE,
-                                  stdin=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
-        self.outQueue = queue.Queue()
-        self.errQueue = queue.Queue()
-
-        # Tracking the line
-        self.line_start = 0
-        self.alive = True
-        # Create two new threads
-        Thread(target=self.readFromProccessOut).start()
-        Thread(target=self.readFromProccessErr).start()
-
-        self.writeLoop()
-
-    def writeLoop(self):
-        "Used to write data from stdout and stderr to the Text widget"
-        # if there is anything to write from stdout or stderr, then write it
-        if not self.errQueue.empty():
-            self.write(self.errQueue.get())
-        if not self.outQueue.empty():
-            self.write(self.outQueue.get())
-
-        # run this method again after 10ms
-        if self.alive:
-            self.tkframe.after(50,self.writeLoop)
-        else:
-            self.destroy()
-
-    def write(self,string):
-        self.tkframe.insert(tk.END, string)
-        self.tkframe.see(tk.END)
-        self.line_start+=len(string)
-
-    def readFromProccessOut(self):
-        "To be executed in a separate thread to make read non-blocking"
-        while self.alive:
-            data = self.p.stdout.raw.read(1024).decode('utf-8')
-            self.outQueue.put(data)
-
-    def readFromProccessErr(self):
-        "To be executed in a separate thread to make read non-blocking"
-        while self.alive:
-            data = self.p.stderr.raw.read(1024).decode('utf-8')
-            self.errQueue.put(data)
-
-    def destroy(self):
-        "This is the function that is automatically called when the widget is destroyed."
-        self.alive=False
-        # write exit() to the console in order to stop it running
-        # self.p.stdin.write("exit()\n".encode('utf-8'))
-        self.p.stdin.flush()
+from Console import Console
+from Misc_Function import *
 
 class App():
     """
@@ -104,7 +47,7 @@ class App():
     """
     def __init__(self):
 
-        self.__version__ = 0.1
+        self.__version__ = '0.2.1'
         # Larch
         self.mylarch = larch.Interpreter()
         self.root = Tk(className='EXAFS Neo GUI')
@@ -114,7 +57,7 @@ class App():
         self.padx = 5
         self.pady = 3
 
-        # print(os.path.join(__file__,'media/icon.png'))
+        self.os = get_platform()
         base_folder = os.path.dirname(os.path.join(os.getcwd(),__file__))
         icon_loc = os.path.join(base_folder,'media/icon.png')
 
@@ -166,6 +109,7 @@ class App():
         self.path_list = StringVar(self.root,temp_list)
         self.path_optimize = BooleanVar(self.root,False)
         self.path_optimize_pert = DoubleVar(self.root,0.01)
+        self.path_optimize_only = BooleanVar(self.root,False)
 
         # Larch Paths
         self.kmin = DoubleVar(self.root,2.5)
@@ -202,9 +146,8 @@ class App():
         self.tab_Output = tk.Frame(self.mainframe,height=height)
         self.tab_Analysis = tk.Frame(self.mainframe,height=height)
         self.tab_Expert = tk.Frame(self.mainframe,height=height)
-        # self.tab_About = tk.Frame(self.mainframe,height=height)
 
-        # self.tab_Pertub = tk.Frame(self.mainframe,height=height)
+        # Add all the secondary tabs on the top window
         self.mainframe.add(self.tab_Inputs, text="Inputs")
         self.mainframe.add(self.tab_Populations, text="Populations")
         self.mainframe.add(self.tab_Paths, text="Paths")
@@ -214,7 +157,6 @@ class App():
         self.mainframe.add(self.tab_Output, text="Outputs")
         self.mainframe.add(self.tab_Analysis, text='Analysis')
         self.mainframe.add(self.tab_Expert, text='Expert')
-        # self.mainframe.add(self.tab_About, text='About')
         self.mainframe.grid(row=0,column=0,columnspan=4,padx=self.padx,pady=self.pady,sticky=E+W+N+S)
 
     def description_tabs(self,arr,tabs,sticky=(W,E),row=None,return_description=False):
@@ -254,6 +196,9 @@ class App():
         self.mainframe.grid_columnconfigure(1,weight=1)
 
     def Write_ini(self,filename):
+        """
+            Write the ini for the specific file
+        """
         inputs = ("[Inputs] \nnum_compounds = {compound} \ncsv_file = {data} \noutput_file = {out} \nfeff_file = {feff}\ncsv_series = {series}"
             .format(compound=str(self.ncomp.get()),
                     data=str(self.data_file.get()),
@@ -273,12 +218,14 @@ class App():
                     e0=str(self.chance_of_mutation_e0.get()),
                     opt=str(self.mutation_options.get())))
 
-        paths = ("\n\n[Paths] \nindividual_path = {tf}  \npath_range = {range} \npath_list = {list} \npath_optimize = {optimize} \npath_optimize_percent = {optimize_pert}"
+        paths = ("\n\n[Paths] \nindividual_path = {tf}  \npath_range = {range} \npath_list = {list} \npath_optimize = {optimize} \noptimize_percent = {optimize_pert} \noptimize_only = {optimize_only}"
             .format(tf=str(self.individual_path.get()),
                     range=str(self.path_range.get()),
                     list=str(self.path_list.get().replace(" ","")),
                     optimize=str(self.path_optimize.get()),
-                    optimize_pert = str(self.path_optimize_pert.get())))
+                    optimize_pert = str(self.path_optimize_pert.get()),
+                    optimize_only = str(self.path_optimize_only.get())
+                    ))
 
         larch_paths = ("\n\n[Larch_Paths] \nkmin = {min} \nkmax = {max} \nkweight = {weight} \ndeltak = {delk} \nrbkg = {rb} \nbkgkw = {bk} \nbkgkmax = {bmax}"
             .format(min=self.kmin.get(),
@@ -319,10 +266,10 @@ class App():
 
     def stop_term(self):
         if hasattr(self,'proc'):
-            print("Stopped EXAFS")
+            # print("Stopped EXAFS")
             self.proc.kill()
 
-    def run_term(self):
+    def run_term(self,file = 'test_temp.i'):
         """
         if hasattr(self,'terminal'):
             # Need to close previous threads
@@ -336,8 +283,15 @@ class App():
         self.Write_ini('test_temp.i')
         self.stop_term()
 
-        command = 'exafs -i test_temp.i'
-        self.proc = subprocess.Popen("exec " + command,shell=True)
+        # command = 'exafs -i test_temp.i'
+        command = ['exafs','-i',file]
+        self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
+
+    def run_ini(self,file = 'test_temp.i'):
+
+        command = ['exafs','-i',file]
+        self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
+        self.proc.wait()
 
     def Build_global(self):
         '''
@@ -345,27 +299,43 @@ class App():
         '''
 
         def about_citation():
+            """
+            Create about popup
+            """
             popup = tk.Toplevel()
             popup.wm_title("About: Ver: " + str(self.__version__))
-            # msg = 'Citation:\nAnalysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques\n J. Terry, M. Lau, J. Sun, C. Xu, B. Hendricks,\nJ. Kise, M. Lnu, S. Bagade, S. Shah, P. Makhijani,\nA. Karantha, T. Boltz, M. Oellien, M. Adas, S. Argamon, M. Long, D. Guillen\n[Submission], 2020'
+
+            popup.resizable(False,False)
             cite = tk.Label(popup,text='Citation:',font='TkTextFont')
-            cite.grid(column=0,row=0,sticky=W,padx=self.padx,pady=self.pady)
-            citation = scrolledtext.ScrolledText(popup, font="TkTextFont")
-            citation.grid(column=0,row=1,padx=self.padx,pady=self.pady)
+            cite.grid(column=0,row=0,sticky=N,padx=self.padx,pady=self.pady)
+            citation = scrolledtext.ScrolledText(popup,
+                                      width = 75,
+                                      height = 10,
+                                      font="TkTextFont")
+            citation.grid(column=0,row=1,sticky=N,padx=self.padx,pady=self.pady)
+            citation.configure(state ='disabled')
+
             with open('media/Citation') as f:
                 citation.insert(tk.END,f.read())
 
             License_Label = tk.Label(popup,text='License:',font='TkTextFont')
-            License_Label.grid(column=0,row=2,sticky=W,padx=self.padx,pady=self.pady)
-            license = scrolledtext.ScrolledText(popup)
-            license.grid(column=0,row=3,sticky=N+S+W+E,padx=self.padx,pady=self.pady)
+            License_Label.grid(column=0,row=2,sticky=N,padx=self.padx,pady=self.pady)
+            license = scrolledtext.ScrolledText(popup,
+                                    width = 75,
+                                    font = "TkTextFont")
+            license.grid(column=0,row=3,sticky=N,padx=self.padx,pady=self.pady)
+            license.configure(state ='disabled')
             with open('../LICENSE') as f:
                 license.insert(tk.END,f.read())
             B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
             B1.grid(column=0,row=4,padx=self.padx,pady=self.pady)
 
-            popup.grid_columnconfigure((1,3),weight=1)
-            popup.grid_rowconfigure((1,3),weight=1)
+            # popup.grid_columnconfigure((1,3),weight=1)
+            # popup.grid_rowconfigure((1,3),weight=1)
+
+            popup.grid_columnconfigure((0,2),weight=1)
+            popup.grid_rowconfigure((0,2),weight=1)
+
             popup.protocol('WM_DELETE_WINDOW', popup.destroy)
 
         self.generate_button = tk.Button(self.root, text="Generate Input", command=self.Generate_ini)
@@ -412,21 +382,9 @@ class App():
         separator = ttk.Separator(self.tab_Inputs, orient='horizontal')
         separator.grid(column=0, row=2,columnspan=4,sticky=W+E,padx=self.padx)
 
-        # Max 5 comp
-        # def test_feff_array():
-        #     for i in range(self.ncomp.get()):
-        #         print(self.feff_file_list[i].get())
-        #
-        # button_test_arr = ttk.Button(self.tab_Inputs,text="Show",
-        #         command=test_feff_array, style='my.TButton')
-        # button_test_arr.grid(column=1, row=3, sticky=W,padx=self.padx,pady=self.pady)
-
         comp_list = list(range(1,6))
         entry_ncomp = ttk.Combobox(self.tab_Inputs, width=7, values=comp_list,textvariable=self.ncomp, font=self.entryFont)
         entry_ncomp.grid(column=1, row=3, sticky=(W, E),padx=self.padx)
-
-        # entry_feff_folder = tk.Entry(self.tab_Inputs,textvariable=self.feff_file,font=self.entryFont)
-        # entry_feff_folder.grid(column=1,row=4,sticky=(W,E),padx=self.padx,pady=self.pady)
 
         def select_data_file():
             os.chdir("..") #change the working directory from gui to EXAFS
@@ -466,6 +424,7 @@ class App():
             # print(raw_feff)
         def gen_feff_folder(var,indx,mode):
             ncomp = self.ncomp.get()
+            self.feff_file_toggle = [True for i in range(self.ncomp.get())]
             k = 4
             try:
                 self.arr_feff
@@ -546,7 +505,6 @@ class App():
                 folder_name = os.path.join(folder_name,'feff')
                 var.set(folder_name)
 
-
             os.chdir("gui")
 
         # add trace back
@@ -584,10 +542,9 @@ class App():
         """
         Build path tabs
         """
-        # arr_paths = ["Individual Path", "Path Range", "Path List", "Path Optimize","Path Optimize Percentage"]
-        # arr_paths = ['Path range']
-        arr_paths = ['Path Optimize','Path Optimize Percentage']
-        self.description_tabs(arr_paths,self.tab_Paths,row = [0,1])
+
+        arr_paths = ['Path Optimize','Multi-Path Optimize','Path Optimize Percentage']
+        self.description_tabs(arr_paths,self.tab_Paths,row = [0,1,2])
 
         def checkbox_individual_paths():
             if self.individual_path.get() == True:
@@ -598,31 +555,18 @@ class App():
                 entry_path_range.config(state='normal')
                 entry_path_list.config(state='disabled')
 
-        def path_range_cb(var, indx, mode):
-            if self.individual_path.get()==False:
-                if self.path_range_call.get() == '':
-                    int_test = 0
-                else:
-                    int_test = int(float(self.path_range_call.get()))
-                self.path_range_call.set(int_test)
-                self.path_range.set(int_test)
-
-                custom_path_list = ",".join(np.char.mod('%i', np.arange(1,self.path_range.get()+1)))
-                self.path_list_call.set(custom_path_list)
-                self.path_list.set(custom_path_list)
-
-        def path_list_cb(var, indx, mode):
-            """
-            Path_list call_back for the number of lists
-            """
-            if self.individual_path.get()== True:
-                self.path_list.set(self.path_list_call.get())
-                counts = 0
-                test_list = self.path_list.get().split(",")
-                for i in range(len(test_list)):
-                    if test_list[i] != '':
-                        counts += 1
-                self.path_range_call.set(counts)
+        # def path_list_cb(var, indx, mode):
+        #     """
+        #     Path_list call-back for the number of lists
+        #     """
+        #     if self.individual_path.get()== True:
+        #         self.path_list.set(self.path_list_call.get())
+        #         counts = 0
+        #         test_list = self.path_list.get().split(",")
+        #         for i in range(len(test_list)):
+        #             if test_list[i] != '':
+        #                 counts += 1
+        #         self.path_range_call.set(counts)
 
         # entry_individual_paths = ttk.Checkbutton(self.tab_Paths,
         #     variable = self.individual_path,command = checkbox_individual_paths)
@@ -641,33 +585,81 @@ class App():
         # entry_path_list.grid(column=1, row=2, sticky=(W, E),padx=self.padx)
         # entry_path_list.config(state='disabled')
 
-        def path_trace(var,indx,mode):
+        # def path_range_cb(var, indx, mode):
+        #     if self.individual_path.get()==False:
+        #         if self.path_range_call.get() == '':
+        #             int_test = 0
+        #         else:
+        #             int_test = int(float(self.path_range_call.get()))
+        #         self.path_range_call.set(int_test)
+        #         self.path_range.set(int_test)
+        #
+        #         custom_path_list = ",".join(np.char.mod('%i', np.arange(1,self.path_range.get()+1)))
+        #         self.path_list_call.set(custom_path_list)
+        #         self.path_list.set(custom_path_list)
+        # def test_str(var):
+
+
+        def output_var_trace(var,indx,mode):
+            """
+            Updates the variables whenever it gets changes
+            """
             raw_str = []
             # compounds
             if self.ncomp.get() > 1:
                 for i in range(len(self.path_file_list)):
                         # print(self.path_file_list[i].get())
-                        base_str = "[" + self.path_file_list[i].get() + "]"
+                        # create the internal brackets
+                        # base_str = list(self.path_file_list[i].get())
+                        var = self.path_file_list[i].get()
+                        if var == str(0) or var == "":
+                            base_str = ''
+                            # del the corresponding one from the final output
+                            self.feff_file_toggle[i] = False
+                        else:
+                            base_str = "[" + var + "]"
+                            self.feff_file_toggle[i] = True
                         raw_str.append(base_str)
-                raw_path = ','.join(raw_str)
+
+                # call back for path and feff
+                temp_path_list = []
+                temp_feff_list = []
+                for i in range(len(self.path_file_list)):
+                    if self.feff_file_toggle[i] == True:
+                        temp_path_list.append(raw_str[i])
+                        temp_feff_list.append(self.feff_file_list[i].get())
+                raw_path = ','.join(temp_path_list)
+                raw_feff = ','.join(temp_feff_list)
                 self.path_list.set(raw_path)
+                self.feff_file.set(raw_feff)
                 self.individual_path.set(True)
+            # else calculate compounds
             else:
                 self.path_list.set(self.path_file_list[0].get())
 
+            # print("-----------------------")
+            # print(self.feff_file_toggle)
+            # print(self.feff_file.get())
             # print(self.path_list.get())
+
         def ncomp_trace_cb(var, indx, mode):
+            """
+                Trace the number of components, if changes, recomputed
+            """
             ncomp = self.ncomp.get()
-            k = 4 # Starting points
+            k = 5 # Starting components
+
+            # Check if arr_pathlist exists
             try:
                 self.arr_pathlist
             except AttributeError:
                 pass
             else:
+                # Destory all in the current list
                 for i in range(len(self.path_input_list)):
                     self.path_description_list[i].destroy()
                     self.path_input_list[i].destroy()
-
+            # Create the list
             self.arr_pathlist = []
             self.path_input_list = []
             self.path_file_list = []
@@ -675,32 +667,42 @@ class App():
             for i in range(ncomp):
                 self.arr_pathlist.append('Pathlist Folder ('+ str(i+1) + ")")
                 arr_row.append(i+k)
-
+                # Create the entry variable
                 temp_path_var = StringVar(self.root,'Path_list')
-                temp_path_var.trace_add('write',path_trace)
+                temp_path_var.trace_add('write',output_var_trace)
+                # temp_path_var.trace_add('write',)
                 self.path_file_list.append(temp_path_var)
-
+                # Create the entry
                 temp_entry = tk.Entry(self.tab_Paths,textvariable=self.path_file_list[i],
                     font=self.entryFont)
+                # lock to the grid
                 temp_entry.grid(column=1,columnspan=2,row=k+i,sticky=(W,E),
                     padx=self.padx,pady=self.pady)
 
                 self.path_input_list.append(temp_entry)
 
+            # create the descriptions for it.
             self.path_description_list = self.description_tabs(self.arr_pathlist,self.tab_Paths,row=arr_row,return_description=True)
 
         entry_path_optimize = ttk.Checkbutton(self.tab_Paths,
             variable = self.path_optimize)
         entry_path_optimize.grid(column=1,row=0,sticky=(W,E),padx=self.padx)
 
+        entry_path_optimize_only = ttk.Checkbutton(self.tab_Paths,
+            variable = self.path_optimize_only)
+        entry_path_optimize_only.grid(column=1,row=1,sticky=(W,E),padx=self.padx)
+
         entry_optimize_perc= ttk.Entry(self.tab_Paths, textvariable=self.path_optimize_pert, font=self.entryFont)
-        entry_optimize_perc.grid(column=1, row=1, sticky=(W, E),padx=self.padx)
+        entry_optimize_perc.grid(column=1, row=2, sticky=(W, E),padx=self.padx)
 
         separator = ttk.Separator(self.tab_Paths, orient='horizontal')
-        separator.grid(column=0, row=2,columnspan=4,sticky=(W,E),padx=self.padx)
-        self.tab_Paths.columnconfigure(3,weight=1)
+        separator.grid(column=0, row=3,columnspan=4,sticky=(W,E),padx=self.padx)
+        self.tab_Paths.columnconfigure(4,weight=1)
 
+        # add the call back for it to modify if it get changes
         self.ncomp.trace_add('write',ncomp_trace_cb)
+
+        # inital default value
         self.ncomp.set(1)
 
     def Build_mutations_tab(self):
@@ -755,9 +757,7 @@ class App():
                 # Makes it so
             bkg_plot.inital_parameters(self.temp_data_file,self.r_bkg,self.bkg_kw,self.bkg_kmax,self.kmin,self.kmax,self.delta_k,self.k_weight)
             bkg_plot.draw_background()
-        # def button_kspace_draw():
-        #
-        # def button_rspace_draw():
+
         arr_bkg = ["R Bkg", "K min","K max","Bkg Kw", "Bkg Kmax"]
         self.description_tabs(arr_bkg,self.tab_Bkg,sticky=(W,E,N))
         # self.tab_Bkg.grid_rowconfigure(3,weight=1)
@@ -833,12 +833,28 @@ class App():
                     self.num_gen.set(gen_select)
                     self.chance_of_mutation.set(mut_select)
                     self.Write_ini(multi_folder + "/file_" + str(i).zfill(3)+'.i')
+                # set back og ini
                 self.populations.set(og_pop)
                 self.num_gen.set(og_gen)
                 self.chance_of_mutation.set(og_mut)
                 self.output_file.set(og_out_file)
             # os.chdir("gui")
+            return multi_folder
+        def run_multi_ini():
+            """
+            Run multiple ini file
+            """
+            folder_loc = generate_multi_ini()
 
+            full_file_list = []
+            file_list = glob.glob(folder_loc + "/*.i")
+            for i in file_list:
+                full_file_list.append(os.path.join(folder_loc,i))
+
+            full_file_list.sort(key=natural_keys)
+            for i in full_file_list:
+                print(bcolors.BOLD + str(i) + bcolors.ENDC)
+                self.run_ini(i)
         def checkbox_multi():
             widget_lists=[
                 entry_n_ini,
@@ -848,7 +864,8 @@ class App():
                 entry_pertub_gen_max,
                 entry_pertub_mut_min,
                 entry_pertub_mut_max,
-                button_gen_nini]
+                button_gen_nini,
+                button_run_nini]
             if pertub_check.get() == 0:
                 for i in widget_lists:
                     i.config(state='disabled')
@@ -870,21 +887,18 @@ class App():
         separator.grid(column=0, row=2,columnspan=4,sticky=W+E,padx=self.padx)
         self.tab_Output.columnconfigure(3,weight=1)
 
-
         arr_out = ["Create Multiple Input Files","Number of Ini Files","Pertubutions-Population(min,max)", "Pertubutions-Generation(min,max)","Pertubutions-Mutation(min,max)"]
         self.description_tabs(arr_out,self.tab_Output,row=[3,5,6,7,8])
-        # Create New pertubutuions
 
+        # Create New pertubutuions
         checkbutton_pertub= ttk.Checkbutton(self.tab_Output, var=pertub_check,command=checkbox_multi)
         checkbutton_pertub.grid(column=1, row=3,sticky=W+E,padx=self.padx)
-
 
         pertub_list = list(range(1,101))
 
         text ='Each entry allows user to control perturbation percentage of the desire variables.'
         entry = ttk.Label(self.tab_Output,text=text,font=self.labelFont)
         entry.grid_configure(column=0,row=4,columnspan=3,sticky=W+E,padx=self.padx,pady=self.pady)
-
 
         entry_n_ini = tk.Entry(self.tab_Output,textvariable=self.n_ini,font=self.entryFont)
         entry_n_ini.grid(column=1, row=5,columnspan=2,sticky=(W, E),padx=self.padx)
@@ -926,8 +940,11 @@ class App():
 
         button_gen_nini = tk.Button(self.tab_Output,text="Generate Input Files",command=generate_multi_ini)
         button_gen_nini.grid(column=0, row=9,columnspan=3,sticky=W+E,padx=self.padx,pady=self.pady)
-
         button_gen_nini.config(state='disabled')
+
+        button_run_nini = tk.Button(self.tab_Output,text="Run Multiple Input Files",command=run_multi_ini)
+        button_run_nini.grid(column=0, row=10,columnspan=3,sticky=W+E,padx=self.padx,pady=self.pady)
+        button_run_nini.config(state='disabled')
 
     def Build_analysis_tab(self):
 
@@ -973,6 +990,13 @@ class App():
             self.txtbox.insert(tk.END,"\n-------------\n")
             self.txtbox.insert(tk.END,"Done")
 
+        def plot_occurances():
+            # plot the self_occurances, and then plot the others
+            """
+            To do: occurances only works with one
+            """
+            analysis_plot.plot_occurances(analysis_folder.get(),self.path_optimize_pert.get(),self.path_list.get())
+
         analysis_folder = StringVar(self.tab_Analysis,'Please choose a directory')
         series_index = IntVar(self.tab_Analysis,0)
         self.tab_Analysis.columnconfigure(1,weight=1)
@@ -1014,7 +1038,7 @@ class App():
 
 
         button_plot_occurances = ttk.Button(self.tab_Analysis,text='Plot Occurances',
-                command=analysis_plot.plot_occurances, style='my.TButton')
+                command=plot_occurances, style='my.TButton')
         button_plot_occurances.grid(column=3,row=3,columnspan=1,sticky=W+E,padx=self.padx,pady=self.pady)
 
     def Build_expert_tab(self):

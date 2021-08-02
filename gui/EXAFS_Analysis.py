@@ -1,8 +1,15 @@
-# import larch score
+"""
+Authors    Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
+Email      andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
+Version    0.2.0
+Date       July 4, 2021
+
+EXAFS Analysis Wrapper Functions, contains Latex, Igor Pro
+"""
+
 import sys,glob,re,os
 import numpy as np
 import matplotlib.pyplot as plt
-# sys.path.insert(0, '../')
 import larch_score
 from larch_plugins.xafs import xftf
 from scipy.integrate import simps
@@ -14,11 +21,11 @@ def sort_fold_list(dirs):
     fold_list = list_dirs(dirs)
     fold_list.sort(key=natural_keys)
     return fold_list
+
 ## Human Sort
 def list_dirs(path):
     return [os.path.basename(x) for x in filter(
         os.path.isdir, glob.glob(os.path.join(path, '*')))]
-
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -123,8 +130,6 @@ class EXAFS_Analysis:
         else:
             self.params['individual'] = True
             files.append(folder)
-        # print(search_string)
-        # for r, d, f in os.walk(folder):
         print(folder)
 
         files.sort(key=natural_keys)
@@ -134,13 +139,10 @@ class EXAFS_Analysis:
             self.read_optimize_paths(files_opt)
 
         for i in range(len(files)):
-    #         file = os.path.join(folder,'test_' + str(i) + '_data.csv')
             file = files[i]
-    #         print(file)
             try:
                 os.path.exists(file)
                 gen_csv = np.genfromtxt(file,delimiter=',')
-    #             print(gen_csv.shape)
                 gen_csv_unflatten = gen_csv.reshape((-1,4*num_path))
 
                 gen_csv_best_unflatten = gen_csv[-num_path::].reshape((-1,4*num_path))
@@ -193,15 +195,14 @@ class EXAFS_Analysis:
         r"""
         Calculate fitness score based on Chi and ChiR
         """
-        # print(self.bestFit_mat)
         path,yTotal,best,loss,best_Fit_r,arr= larch_score.fitness(self.exp,self.bestFit_mat,self.paths,self.params,return_r=True);
         self.return_str += arr
 
 
         chir2 = (loss/(len(self.intervalK)-self.num_params)).round(6)
 
-        self.return_str += "Fitness Score (Chi2)" + str(np.round(loss,6)) + "\n"
-        self.return_str += "Fitness Score (ChiR2)" + str(np.round(chir2,6)) + "\n"
+        self.return_str += "Fitness Score (Chi2): " + str(np.round(loss,6)) + "\n"
+        self.return_str += "Fitness Score (ChiR2): " + str(np.round(chir2,6)) + "\n"
         # print('Fitness Score (Chi2):',loss.round(6))
         # print('Fitness Score (ChiR2):',chir2)
 
@@ -222,31 +223,30 @@ class EXAFS_Analysis:
         if fig_gui == None:
             fig, ax = plt.subplots(1, 2,figsize=(15,5))
 
-            ax[0].plot(self.g.k, self.g.chi*self.g.k**2,'r--',label="Data")
-            ax[0].plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'b--',label="GA")
+            ax[0].plot(self.g.k, self.g.chi*self.g.k**2,'b--',label="Experiment Data")
+            ax[0].plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'r-',label="Genetic Algorithm")
             ax[0].legend()
             ax[0].set_title(title + " K Space")
 
-            ax[1].plot(self.g.r,self.g.chir_mag,'r--',label='Data')
-            ax[1].plot(self.best.r,self.best.chir_mag,'b--',label='GA')
+            ax[1].plot(self.g.r,self.g.chir_mag,'b--',label='Experiment Data')
+            ax[1].plot(self.best.r,self.best.chir_mag,'r-',label='Genetic Algorithm')
             ax[1].set_title(title + " R Space")
             ax[1].legend()
         else:
             ax = fig_gui.add_subplot(121)
 
-            ax.plot(self.g.k, self.g.chi*self.g.k**2,'r--',label="Data")
-            ax.plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'b--',label="GA")
+            ax.plot(self.g.k, self.g.chi*self.g.k**2,'b--',label="Experiment Data")
+            ax.plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'r-',label="Genetic Algorithm")
             ax.legend()
             ax.set_title(title + " K Space")
 
             ax = fig_gui.add_subplot(122)
 
-            ax.plot(self.g.r,self.g.chir_mag,'r--',label='Data')
-            ax.plot(self.best.r,self.best.chir_mag,'b--',label='GA')
+            ax.plot(self.g.r,self.g.chir_mag,'b--',label='Experiment Data')
+            ax.plot(self.best.r,self.best.chir_mag,'r-',label='Genetic Algorithm')
             ax.set_title(title + " R Space")
             ax.legend()
             fig_gui.tight_layout()
-
 
 
     def construct_latex_table(self,print_table=False):
@@ -346,45 +346,6 @@ class EXAFS_Analysis:
             ax.bar(np.arange(len(self.full_mat_diag)),np.sqrt(self.full_mat_diag))
             fig_gui.tight_layout()
 
-    def calculate_occurances(self,folder_name,limits=20):
-        def log_files(folder,og_paths):
-            # calculate the number of log for each path optimizaiton
-            files = []
-            for r, d, f in os.walk(folder):
-                f.sort(key = natural_keys)
-                for file in f:
-                    # if re.search('test_\d+_data.csv',file):
-                    if fnmatch.fnmatch(file,'*.log'):
-                        files.append(os.path.join(r, file))
-
-            occ_list = np.zeros(og_paths)
-            for i in range(len(files)):
-                with open(files[i]) as f:
-                    for line in f:
-                        if 'New Paths:' in line:
-                            list_str = list(line[12:-2].split())
-                            list_str = np.array(list(map(int,list_str)))
-                            occ_list[list_str-1] += 1
-
-            return occ_list
-        self.occ_list = log_files(folder_name,len(self.paths))
-        j2 = np.argwhere(self.occ_list > limits)
-        print(repr(j2.flatten()+1))
-        # return occ_list
-
-    def plot_occ_list(self,fig_gui=None):
-        # print(self.paths)
-        if fig_gui == None:
-            plt.figure(figsize=(8,5))
-            plt.xticks(self.paths);
-            plt.bar(self.paths,self.occ_list)
-        else:
-            ax = fig_gui.add_subplot(111)
-            # ax.xticks
-            ax.set_xticks(self.paths)
-            # ax.set_xticklabels(self.label,rotation=70)
-            ax.bar(self.paths,self.occ_list)
-            fig_gui.tight_layout()
 
     def paths_optimizations(self,number=0.01,verbose=False):
         r"""
@@ -458,7 +419,7 @@ class EXAFS_Analysis:
                 f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
             elif len(self.paths) == 2:
                         f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
-                        f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')                
+                        f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
         else:
             f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
             f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
@@ -469,7 +430,7 @@ class EXAFS_Analysis:
             curr_paths = str(self.paths[i+3])
             f.write('•ModifyGraph offset(path_' + curr_paths + '_' +self.header + '_chi2)={0,' + str(15 + i) + '}' )
             f.write('\n')
-        f.write(r'•Label left "k\\S2\\M χ(k) (Å\\S-2\\M)";DelayUpdate');f.write('\n')
+        f.write(r'•Label left "k\\S2\\M \u03c7(k) (Å\\S-2\\M)";DelayUpdate');f.write('\n')
         f.write(r'•Label bottom "k (Å\\S-1\\M)"');f.write('\n')
         f.write('•ModifyGraph lsize(fit_' + self.header  + '_chi2)=2');f.write('\n')
         for i in range(len(self.paths)):
@@ -482,7 +443,7 @@ class EXAFS_Analysis:
         f.write('•ModifyGraph mode(data_' + self.header  + '_chi2)=3');f.write('\n')
 
     def create_legend(self,f):
-        legend_header = r"""•Legend/C/N=text0/J "Test\rk\\S2\\Mχ(k)\rTest_Detail\r\r\\s("""
+        legend_header = r'•Legend/C/N=text0/J "Test\rk\\S2\\M\u03c7(k)\rTest_Detail\r\r\\s('
         legend_1 = 'data_' + self.header + r"_chi2) Data\r\\s(fit_" + self.header + r'_chi2) Fit";'
         legend = legend_header + legend_1
         f.write(legend); f.write('\n')
@@ -517,5 +478,54 @@ class EXAFS_Analysis:
             f.write('\n')
 
     def jet_r(self,x):
-
         return plt.cm.jet_r(x)
+
+
+
+def calculate_occurances(folder_name,paths,limits=20):
+    def compute_log_files(folder,og_paths):
+        # calculate the number of log for each path optimizaiton
+        files = []
+        for r, d, f in os.walk(folder):
+            f.sort(key = natural_keys)
+            for file in f:
+                # if re.search('test_\d+_data.csv',file):
+                if fnmatch.fnmatch(file,'*.log'):
+                    files.append(os.path.join(r, file))
+
+        occ_list = np.zeros(len(og_paths))
+        # print(og_paths)
+        for i in range(len(files)):
+            with open(files[i]) as f:
+                for line in f:
+                    if 'New Paths:' in line:
+                        temp_str = []
+                        list_str = line[12:-2].split(',')
+                        for i in range(len(list_str)):
+                            temp_str.append(int(list_str[i].replace("'","")))
+                        # print(temp_str)
+                        for i,cur_path in enumerate(temp_str):
+                            for j,og_path in enumerate(og_paths):
+                                # print(i,cur_path)
+                                if cur_path == og_path:
+                                    occ_list[j] +=1
+
+        return occ_list,len(files)
+    occ_list,nfiles = compute_log_files(folder_name,paths)
+    j2 = np.argwhere(occ_list/nfiles > limits)
+    # print(repr(j2.flatten()+1))
+    return occ_list
+
+def plot_occ_list(folder_name,limits,paths,fig_gui=None):
+
+    occ_list = calculate_occurances(folder_name,paths,limits)
+    if fig_gui == None:
+        plt.figure(figsize=(8,5))
+        plt.xticks(paths);
+        plt.bar(paths,occ_list)
+    else:
+        ax = fig_gui.add_subplot(111)
+        # ax.xticks
+        ax.set_xticks(paths)
+        ax.bar(paths,occ_list)
+        fig_gui.tight_layout()

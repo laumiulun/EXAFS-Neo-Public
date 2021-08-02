@@ -1,10 +1,15 @@
+"""
+Authors    Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
+Email      andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
+Version    0.2.0
+Date       July 4, 2021
 
-# This modules is used for modeling the score for each dataset
-
+This modules is used for modeling the score for each dataset
+"""
 
 # Import Library
 
-# %matplotlib inline
+
 import os
 os.environ['NUMEXPR_MAX_THREADS'] = '16'
 import larch
@@ -28,15 +33,11 @@ from pathlib import Path
 
 global mylarch
 global base
-# global front
-# global end
-# global intervalK
-# global Kmin
+
 
 mylarch = Interpreter()
 base =  Path(os.getcwd()).parent.parent
-# front = os.path.join(base,"path_files/TcCl6/feff")
-# end = '.dat'
+
 
 # Larch has two types of files, from Larch which is the chik, and the experimential files
 def larch_init(CSV_sub,params):
@@ -68,7 +69,6 @@ def larch_init(CSV_sub,params):
 
     BKGKW = params['bkgkw']# cu = 1 hfal2 = 2.0
     BKGKMAX = params['bkgkmax']# cu = 25, hfal2 = 15
-#     print(base)
     CSV_PATH = os.path.join(base,CSV_sub)
     g = read_ascii(CSV_PATH)
     best = read_ascii(CSV_PATH, )
@@ -95,9 +95,6 @@ def larch_init(CSV_sub,params):
     '''chang end'''
 
     exp = g.chi
-    # params = {}
-    # params['Kmin'] = Kmin
-    # params['Kmax'] = Kmax
     params['SMALL'] = SMALL
     params['BIG'] = BIG
     params['intervalK'] = intervalK
@@ -105,7 +102,6 @@ def larch_init(CSV_sub,params):
 
 
 def fittness_score(CSV_loc,data,paths,plot=False):
-    # global intervalK
     exp = larch_init(CSV_loc)
     # print(intervalK)
     loss = fitness_individal(exp,data,paths,plot=False)
@@ -150,14 +146,14 @@ def fitness_individal(exp,arr,paths,params,plot=False,export=False,fig_gui=None)
 
         feffdat.path2chi(path, _larch=mylarch)
         if plot:
-            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path: '+str(i))
+            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path: '+str(paths[i]))
             ax.set_xlabel("k ($\AA^{-1}$)")
             ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
             ax.set_ylim(-10,len(paths)*offset+offset)
             ax.set_xlim(0,Kmax+1)
 
         if fig_gui != None:
-            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(i))
+            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(paths[i]))
             ax.set_xlabel("k ($\AA^{-1}$)")
             ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
             ax.set_ylim(-10,len(paths)*offset+offset)
@@ -197,7 +193,6 @@ def cal_row_generations(i,k,npaths,pop_size):
     start =  i*npaths + k*pop_size*npaths
     end   =  start + npaths
     return start,end
-
 
 def fitness(exp,arr,paths,params,return_r=True):
 
@@ -243,20 +238,13 @@ def fitness(exp,arr,paths,params,return_r=True):
     xftf(best.k, best.chi, kmin=Kmin, kmax=Kmax, dk=4, window='hanning',
      kweight=Kweight, group=best, _larch=mylarch)
 
-    # offset=-3
-#     plt.plot(path.k[SMALL:BIG], yTotal[SMALL:BIG]*path.k[SMALL:BIG]**2+offset,label="Total")
-#     plt.legend(loc='upper left')
     for j in intervalK:
-        #loss = loss + (yTotal[int(j)]*g.k[int(j)]**2 - exp[int(j)]*g.k[int(j)]**2)**2
         loss = loss + (yTotal[int(j)]*g.k[int(j)]**2 - exp[int(j)]*g.k[int(j)]**2)**2
-
 
     if return_r == True:
         return path,yTotal,best,loss,arr_r,array_str
     else:
         return path,yTotal,best,loss
-
-
 
 def construct_bestfit_mat(gk,gchi,pathk,yTotal,SMALL,BIG):
     exp_data = np.vstack((gk,gchi*gk**2)).T
@@ -269,9 +257,6 @@ def construct_bestfit_mat(gk,gchi,pathk,yTotal,SMALL,BIG):
 def write_dat_csv(writer,data):
     for i in range(len(data)):
         writer.writerow((data[i,:]))
-#         print(data[i,:])
-
-
 
 # Write out bestFit csv for plotting in Igor Format
 def write_bestFit_csv(gk,gchi,pathk,yTotal,SMALL,BIG,name='bestFit.csv',header_base='Sample'):
@@ -279,10 +264,7 @@ def write_bestFit_csv(gk,gchi,pathk,yTotal,SMALL,BIG,name='bestFit.csv',header_b
     with open(name, mode='w', newline='', encoding='utf-8') as write_file:
 
         exp_data,fit_data = construct_bestfit_mat(gk,gchi,pathk,yTotal,SMALL,BIG)
-
         writer = csv.writer(write_file, delimiter=',')
-
-
         writer.writerow(['data_' + header_base + '.k','data_' + header_base+'.chi2'])
         write_dat_csv(writer,exp_data)
         writer.writerow('')

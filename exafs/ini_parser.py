@@ -46,7 +46,7 @@ def split_path_arr(arr_str,num_compounds):
 
 	return split_str
 
-def optional_var(dict,name_var,alt_var,type_var):
+def optional_var(dict,name_var,alt_var=None,type_var=int):
 	"""
 	Detections of optional variables exists within input files, and
 		put in corresponding default inputs parameters.
@@ -58,6 +58,11 @@ def optional_var(dict,name_var,alt_var,type_var):
 			return_var = str_to_bool(dict[name_var])
 		else:
 			return_var = alt_var
+	elif type_var == None:
+		if name_var in dict:
+			return_var = dict[name_var]
+		else:
+			return_var = None
 	else:
 		if name_var in dict:
 			return_var = type_var(dict[name_var])
@@ -76,6 +81,10 @@ Outputs_dict = file_dict['Outputs']
 num_compounds = optional_var(Inputs_dict,'num_compounds',1,int)
 csv_file = Inputs_dict['csv_file']
 output_file = Inputs_dict['output_file']
+pathrange_file = optional_var(Inputs_dict,'pathrange_file',None,None)
+sabcor_file = optional_var(Inputs_dict,'sabcor_file',None,None)
+
+
 
 # Compounds
 if num_compounds > 1:
@@ -85,6 +94,7 @@ if num_compounds > 1:
 		print("Feff folder is not correct")
 else:
 	feff_file = Inputs_dict['feff_file']
+
 
 try:
 	csv_series = str_to_bool(Inputs_dict['csv_series'])
@@ -103,7 +113,11 @@ lucky_few = int(Populations_dict['lucky_few'])
 chance_of_mutation = int(Mutations_dict['chance_of_mutation'])
 original_chance_of_mutation = int(Mutations_dict['original_chance_of_mutation'])
 chance_of_mutation_e0 = int(Mutations_dict['chance_of_mutation_e0'])
-mutated_options = int(Mutations_dict['mutated_options'])
+selection_options = optional_var(Mutations_dict,'selection_options',0,int)
+mutated_options = optional_var(Mutations_dict,'mutated_options',0,int)
+crossover_options = optional_var(Mutations_dict,'crossover_otpions',0,int)
+# mutated_options = int(Mutations_dict['mutated_options'])
+
 
 # Paths
 if num_compounds > 1:

@@ -25,6 +25,8 @@ from larch import Interpreter
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.integrate import simps
+import subprocess
+from .pathrange_file import *
 # from multiprocessing import Pool
 # import multiprocessing as mp
 # import ray

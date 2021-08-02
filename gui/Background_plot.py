@@ -1,16 +1,24 @@
 """
+Authors    Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
+Email      andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
+Version    0.2.0
+Date       July 4, 2021
+
 Class definitions for background plots in tkinter
 """
 
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-
 import larch
 from larch.io import read_ascii
 from larch.xafs import autobk, xftf
 
 class BKG_plot:
+    """
+    Class for Background plots, the plots utilizes matplotlib to include the toolbar,
+    this calculates the background for preallocations.
+    """
     def __init__(self,frame,larch):
         self.mylarch = larch
         self.fig = Figure(figsize=(3.75, 3.75), dpi=100)
@@ -25,7 +33,9 @@ class BKG_plot:
         toolbar = NavigationToolbar2Tk(self.canvas, self.toolbarFrame)
 
     def inital_parameters(self,file,rbkg,bkg_kw,bkg_kmax,k_min,k_max,delta_k,kweight):
-
+        """
+        Initalize the parameters
+        """
         self.file = file
         self.rbkg = rbkg
         self.bkg_kw = bkg_kw
@@ -43,11 +53,14 @@ class BKG_plot:
         except ValueError:
             pass
         self.data = read_ascii(str(self.file.get()))
-
-    def autobk(self):
-        # # TODO:
+        print(self.data)
+    def bg_autobk(self):
+        """
+        calculate the background
+        TODO:
         # Recalculate autobk if rbkg changes.
 
+        """
         try:
             self.data.chi
         except AttributeError:
@@ -58,7 +71,9 @@ class BKG_plot:
                 _larch =self.mylarch)
 
     def update_parameters(self):
+        """
         # Update parameters from the orginal script
+        """
         self.kmin_val = float(self.kmin.get())
         self.kmax_val = float(self.kmax.get())
         self.bkg_kmax_val = float(self.bkg_kmax.get())
@@ -71,7 +86,7 @@ class BKG_plot:
         #  1. only change background when related to bkg (bkgkw, rbkg, bkgmax) is getting change.
         #  2. auto update plots based on changes to the val, might be difficult since
         #  3. If there no energy and mu:
-        self.autobk()
+        self.bg_autobk()
         try:
             self.data.energy
         except AttributeError:
@@ -82,9 +97,9 @@ class BKG_plot:
             if visual:
                 self.ax.clear()
                 # self.kweight = kweight
-                self.ax.plot(self.data.energy,self.data.mu,'.-',label='Data')
+                self.ax.plot(self.data.energy,self.data.mu,'b.-',label='Data')
                 # self.ax.plot(self.data.energy[self.small:self.big],self.data.mu[self.small:self.big],'.-',label='Data')
-                self.ax.plot(self.data.energy,self.data.bkg,label='Background')
+                self.ax.plot(self.data.energy,self.data.bkg,'r',label='Background')
                 self.ax.legend()
                 self.ax.set_ylabel("$\mu$ (E)")
                 self.ax.set_xlabel("Energy (eV)")

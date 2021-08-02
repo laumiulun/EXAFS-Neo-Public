@@ -1,32 +1,77 @@
-# Generate range limits for PY giving the
 import copy
 import numpy as np
-
 
 class Pathrange_limits():
     # class hidden variable
     _tol = 1e-13
 
-    def __init__(self,
-                path):
+    def __init__(self,_path_,custom_range=None):
 
-        self.path = path
+        self._path_ = _path_
         self.offset_val = 3
-        self.rangeS02 = (np.arange(0.05,0.96,0.01))
-        self.rangeE0 = (np.arange(-1,1.01,0.01))
-        # self.rangeE0_large = (np.linspace(-600, 600, 1201) * 0.01)  # <- Larger range B
-        self.rangeSigma2 = (np.arange(0.001,0.016,0.001)) # <- should be separate
-        self.rangeDeltaR = (np.arange(-0.1,0.11,0.01))
-        self.rangeS02 = np.insert(self.rangeS02,0,0)
+
+        if custom_range is None:
+
+            self.rangeS02 = (np.arange(0.05,0.96,0.01))
+            self.rangeS02 = np.insert(self.rangeS02,0,0)
+            self.rangeE0 = (np.arange(-1,1.01,0.01))
+            self.rangeSigma2 = (np.arange(0.001,0.016,0.001))
+            self.rangeDeltaR = (np.arange(-0.1,0.11,0.01))
+
+            self.S02_min = np.min(self.rangeS02)
+            self.S02_max = np.max(self.rangeS02)
+            self.S02_dt = 0.01
+
+            self.Sigma2_min = np.min(self.rangeSigma2)
+            self.Sigma2_max = np.max(self.rangeSigma2)
+            self.Sigma2_dt = 0.001
+
+            self.deltaR_min = np.min(self.rangeDeltaR)
+            self.deltaR_max = np.max(self.rangeDeltaR)
+            self.deltaR_dt = 0.01
+
+        else:
+            self.S02_min = custom_range[1]
+            self.S02_max = custom_range[2]
+            self.S02_dt = custom_range[3]
+
+            self.Sigma2_min = custom_range[4]
+            self.Sigma2_max = custom_range[5]
+            self.Sigma2_dt = custom_range[6]
+
+            self.deltaR_min = custom_range[7]
+            self.deltaR_max = custom_range[8]
+            self.deltaR_dt = custom_range[9]
+            # -----
+            self.rangeS02 = (np.arange(self.S02_min,self.S02_max,self.S02_dt))
+            self.rangeE0 = (np.arange(-1,1.01,0.01))
+            self.rangeSigma2 = (np.arange(self.Sigma2_min,self.Sigma2_max,self.Sigma2_dt))
+            self.rangeDeltaR = (np.arange(self.deltaR_min,self.deltaR_max,self.deltaR_dt))
+
 
         self.glob_rangeS02 = copy.deepcopy(self.rangeS02)
         self.glob_rangeE0 = copy.deepcopy(self.rangeE0)
         self.glob_rangeSigma2 = copy.deepcopy(self.rangeSigma2)
         self.glob_rangeDeltaR = copy.deepcopy(self.rangeDeltaR)
 
+    def get_lim(self):
+        lim_s02 = self.get_lim_S02()
+        lim_sigma2 = self.get_lim_Sigma2()
+        lim_deltaR = self.get_lim_DeltaR()
+        return (self._path_,lim_s02,lim_sigma2,lim_deltaR)
+
+    def get_lim_S02(self):
+        return (self.S02_min,self.S02_max,self.S02_dt)
+
+    def get_lim_Sigma2(self):
+        return (self.Sigma2_min,self.Sigma2_max,self.Sigma2_dt)
+
+    def get_lim_DeltaR(self):
+        return (self.deltaR_min,self.deltaR_max,self.deltaR_dt)
+
     # Get the range for each specific parameter
     def get_path(self):
-        return self.path
+        return self._path_
 
     def getrange_S02(self):
         return self.rangeS02
@@ -56,7 +101,7 @@ class Pathrange_limits():
 
         return glob_arr[lower:upper+1]
 
-    # Mod each parameters
+    # Mod each parameters based on value
     def mod_s02(self,val):
         self.rangeS02 = self.mod_range(self.glob_rangeS02,val)
 

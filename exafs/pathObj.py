@@ -6,7 +6,7 @@ Author: Andy Lau
 """
 class PathObject:
     """
-    Scattering Paths of each
+        Paths Objects of a specific paths
     """
 
     def __init__(self,pathrange_obj,e0):
@@ -24,6 +24,8 @@ class PathObject:
     def get(self):
         return [self.s02, self.e0, self.sigma2,self.deltaR]
 
+    def get_var(self):
+        return [self.s02,self.sigma2,self.deltaR]
     def get_s02(self):
         return self.s02
 

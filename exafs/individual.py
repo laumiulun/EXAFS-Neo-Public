@@ -30,6 +30,12 @@ class Individual(PathObject):
             Population.append(self.Population[i].get())
         return Population
 
+    def get_var(self):
+        Population = []
+        for i in range(self.npaths):
+            Population.append(self.Population[i].get_var())
+        return Population
+
     def get_e0(self):
         return self.Population[0].get_e0()
 
@@ -56,6 +62,7 @@ class Individual(PathObject):
     def mutate_paths(self,chance):
         for path in self.Population:
             path.mutate(chance)
+
 
     def verbose_yTotal(self,intervalK):
         yTotal = [0]*(401)

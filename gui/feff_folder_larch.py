@@ -9,6 +9,8 @@ Progress
 4. Create new files based on directory [Done]
 5. Make new directory based on the feff file and execute the file [Done]
 6. Compute the number of scattering files [Done]
+
+Calculated multiple FEFF folders
 """
 
 import os,sys
@@ -96,7 +98,6 @@ def create_feff_folder(file):
 
 # Example FEFF file
 if __name__ == "__main__":
-    # feff_file = 'test_feff/feff2.inp'
 
     len_arg = len(sys.argv)
     if (len_arg !=2):
@@ -109,4 +110,3 @@ if __name__ == "__main__":
     else:
         print("FEFF file doesn't exists")
         sys.exit()
-# else:
