@@ -17,10 +17,19 @@ from operator import itemgetter
 import numpy as np
 import larch
 import pathlib
-from larch_plugins.io import read_ascii
-from larch_plugins.xafs import autobk
-from larch_plugins.xafs import feffdat
-from larch_plugins.xafs import xftf
+larch_version = larch.__version__.split('.')
+if int(larch_version[2]) >= 55:
+    # Old versions
+    from larch.io import read_ascii
+    from larch.xafs import autobk
+    from larch.xafs import feffdat
+    from larch.xafs import xftf
+else:
+    # Old versions
+    from larch_plugins.io import read_ascii
+    from larch_plugins.xafs import autobk
+    from larch_plugins.xafs import feffdat
+    from larch_plugins.xafs import xftf
 from larch import Interpreter
 import matplotlib as mpl
 import matplotlib.pyplot as plt

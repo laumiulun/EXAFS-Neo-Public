@@ -1,5 +1,6 @@
 from .pathObj import PathObject
-from larch_plugins.xafs import feffdat
+# from larch_plugins.xafs import feffdat
+from larch.xafs import feffdat
 """
 Construct individuals for the GA
 """

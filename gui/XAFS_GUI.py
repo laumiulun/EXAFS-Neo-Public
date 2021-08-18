@@ -285,7 +285,11 @@ class App():
 
         # command = 'exafs -i test_temp.i'
         command = ['exafs','-i',file]
-        self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
+        if self.os == 'Windows':
+            print(' '.join(command))
+            self.proc = subprocess.Popen(' '.join(command),shell=True)
+        else:
+            self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
 
     def run_ini(self,file = 'test_temp.i'):
 
@@ -347,6 +351,8 @@ class App():
         self.stop_button = tk.Button(self.root,text='Stop',command=self.stop_term)
         self.stop_button.grid(column=2,row=2,columnspan=1,sticky=W,padx=self.padx,pady=self.pady)
 
+        if self.os == 'Windows':
+            self.stop_button.config(state='disabled')
 
         self.about_button = tk.Button(self.root,text='About',command=about_citation)
         self.about_button.grid(column=0,row=2,columnspan=1,sticky=W,padx=self.padx,pady=self.pady)

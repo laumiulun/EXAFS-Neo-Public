@@ -478,6 +478,7 @@ class EXAFS_Analysis:
             f.write('\n')
 
     def jet_r(self,x):
+
         return plt.cm.jet_r(x)
 
 
@@ -501,7 +502,9 @@ def calculate_occurances(folder_name,paths,limits=20):
                     if 'New Paths:' in line:
                         temp_str = []
                         list_str = line[12:-2].split(',')
+                        # print(list_str)
                         for i in range(len(list_str)):
+                            # temp_str.append(list_str[i][1:-1])
                             temp_str.append(int(list_str[i].replace("'","")))
                         # print(temp_str)
                         for i,cur_path in enumerate(temp_str):
@@ -527,5 +530,6 @@ def plot_occ_list(folder_name,limits,paths,fig_gui=None):
         ax = fig_gui.add_subplot(111)
         # ax.xticks
         ax.set_xticks(paths)
+        # ax.set_xticklabels(self.label,rotation=70)
         ax.bar(paths,occ_list)
         fig_gui.tight_layout()

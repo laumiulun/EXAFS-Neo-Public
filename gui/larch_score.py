@@ -14,14 +14,18 @@ import os
 os.environ['NUMEXPR_MAX_THREADS'] = '16'
 import larch
 import random
-from larch_plugins.xafs import feffdat
-from larch_plugins.xafs import xftf
+# from larch_plugins.xafs import feffdat
+# from larch_plugins.xafs import xftf
+from larch.xafs import feffdat
+from larch.xafs import xftf
 from larch import Interpreter
 import operator
 import numpy as np
 from operator import itemgetter
-from larch_plugins.io import read_ascii
-from larch_plugins.xafs import autobk
+from larch.io import read_ascii
+from larch.xafs import autobk
+# from larch_plugins.io import read_ascii
+# from larch_plugins.xafs import autobk
 import datetime
 import time
 import matplotlib as mpl
