@@ -1,6 +1,6 @@
 # EXAFS Neo
 #### Versions: 0.9.6
-#### Last update: Jul 28, 2021
+#### Last update: Aug 23, 2021
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
