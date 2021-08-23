@@ -5,28 +5,42 @@
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
 ## Prerequisites
-It is highly recommend to utilize `anaconda` or `pipx` package managers to prevent unforseen dependency conflicts. EXAFS Neo uses [`larch`](https://xraypy.github.io/xraylarch/) to process the x-ray spectrum.
+It is highly recommend to utilize `anaconda` or `pip` package managers to prevent unforeseen dependency conflicts. EXAFS Neo uses [`larch`](https://xraypy.github.io/xraylarch/) to process the x-ray spectrum.
 
   - Python: 3.x
   - Numpy: 1.17.2
-  - Larch: >0.9.46
+  - Larch: >0.9.47
   - Matplotlib: 3.1.2
 
 It is highly recommend to create a new environment in `anaconda` to run EXAFS Neo to prevent packages conflicts.
 
-        conda create --name exafs python=3.7  numpy matplotlib pyqt
+        # Create new environment
+        conda config --add channels conda-forge
+        conda create -n exafs python=3.7
         conda activate exafs
-        conda install -yc GSECARS xraylarch
+
+        # Install Conda Dependencies
+        conda install -y "numpy=>1.20" "scipy=>1.5" "matplotlib=>3.0" scikit-learn pandas
+        conda install -y pyparsing pytest pytest-cov coverage
+        conda install -y h5py pillow  sqlalchemy psutil pyyaml
+        conda install -y psycopg2-binary numdifftools emcee
+        conda install -y wxpython
+        conda install -y pymatgen
+        conda install -y cython
+
+        # Install lmfits and Xraylarch using Pip
+        pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
+        pip install xraylarch
 
 ## Installations
 To install EXAFS Neo, simply clone the repo:
 
         git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
-        cd EXAFS-Neo-Public/
+        cd EXAFS_Neo/
         pip install .
 
 ## Usage:
-To run a sample test, make sure the enviornment is set correctly, and select a input file:
+To run a sample test, make sure the environment is set correctly, and select a input file:
 
         exafs -i test/test.ini
 
@@ -40,7 +54,7 @@ EXAFS also provides a internal option to perform self-adsorption on the sample f
 
         git submodule update --init --recursive
         cd contrib/sabcor/
-        make 
+        make
 ## Update:
 EXAFS Neo is under active development, to update the code after pulling from the repository:
 
@@ -55,16 +69,10 @@ We also have provided a GUI for use in additions to our program, with additional
         python XAFS_GUI.py
 
 
-## Potential Errors
-If you get an error message involving psutl, make sure you are in the right conda environment and reinstall psutl and xraylarch:
-
-        conda activate exafs
-        conda install psutl
-        conda install -yc GSECARS xraylarch
-
-## Video Demonstration
+## Video Demonstrations
 You can see a list of video demonstrations of the EXAFS Neo package presented, future presentation related to this software will be posted as they are available
 
+- https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy [Aug 23,2021] (IIT EXAFS Workshop 2021)
 - https://youtu.be/KwhItvwhapg [Feb 15, 2021] (University of Washington)
 - https://youtu.be/jqISqq_FFR8 [Dec 10, 2020] (Canadian Light Source)
 
