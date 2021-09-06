@@ -40,7 +40,6 @@ class Analysis_Plot:
         self.paths = paths
 
     def extract_and_run(self,output_folder):
-
         self.EXAFS_Analysis = EXAFS_Analysis.EXAFS_Analysis(self.paths,self.dir,self.params)
         self.EXAFS_Analysis.extract_data()
 

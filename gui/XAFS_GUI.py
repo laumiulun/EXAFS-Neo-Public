@@ -1,8 +1,8 @@
 """
 Authors    Matthew Adas, Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
 Email      madas@hawk.iit.edu, andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
-Version    0.2.1
-Date       July 29, 2021
+Version    0.2.2
+Date       Sep 6, 2021
 
 Please start the program within the "gui" directory, or "select file" buttons won't start the user in EXAFS.
 "Select Directory" button starts the user in EXAFS/path_files/Cu
@@ -40,7 +40,7 @@ from Analysis_plot import Analysis_Plot
 from feff_folder_larch import *
 from Console import Console
 from Misc_Function import *
-
+import ast
 class App():
     """
     Start of the applications
@@ -975,7 +975,7 @@ class App():
             params['rbkg'] = self.r_bkg.get()
             params['bkgkw'] = self.bkg_kw.get()
             params['bkgkmax'] = self.bkg_kmax.get()
-            params['front'] = self.feff_file.get()
+            params['front'] = self.feff_file.get().split(',')
             params['CSV'] = self.data_file.get()
             params['optimize'] = self.path_optimize.get()
             params['series_index'] = series_index.get()
@@ -984,8 +984,13 @@ class App():
             self.txtbox.insert(tk.END,"Running Analysis...\n")
             analysis_plot.setup_params(params)
 
-            paths = self.path_list.get()
-            analysis_plot.setup_paths(list(map(int,list(paths.split(",")))))
+            paths = '[' + self.path_list.get() + ']'
+            paths_list = ast.literal_eval(paths)
+            # analysis_plot.setup_paths(paths)
+            print(paths)
+            print(paths_list)
+            print(type(paths_list))
+            analysis_plot.setup_paths(ast.literal_eval(paths))
 
             analysis_plot.setup_dirs(analysis_folder.get())
             arr_str,latex_str = analysis_plot.extract_and_run(analysis_folder)

@@ -2,7 +2,7 @@
 Authors    Miu Lun(Andy) Lau*, Jeffrey Terry, Min Long
 Email      andylau@u.boisestate.edu, jterry@agni.phys.iit.edu, minlong@boisestate.edu
 Version    0.2.0
-Date       July 4, 2021
+Date       Sep 1, 2021
 
 This modules is used for modeling the score for each dataset
 """
@@ -43,6 +43,7 @@ mylarch = Interpreter()
 base =  Path(os.getcwd()).parent.parent
 
 
+
 # Larch has two types of files, from Larch which is the chik, and the experimential files
 def larch_init(CSV_sub,params):
     r"""
@@ -75,7 +76,7 @@ def larch_init(CSV_sub,params):
     BKGKMAX = params['bkgkmax']# cu = 25, hfal2 = 15
     CSV_PATH = os.path.join(base,CSV_sub)
     g = read_ascii(CSV_PATH)
-    best = read_ascii(CSV_PATH, )
+    best = read_ascii(CSV_PATH)
     sumgroup = read_ascii(CSV_PATH)
 
     # back ground subtraction using autobk
@@ -105,6 +106,23 @@ def larch_init(CSV_sub,params):
     return exp,g,params,mylarch
 
 
+def flatten_2d_list(array):
+    """
+    convert 2d list of
+    """
+    arr = []
+    iscompound = False
+    for i in range(len(array)):
+        if isinstance(array[i],list) == True:
+            iscompound = True
+    if iscompound == True:
+        for i in range(len(array)):
+            for j in range(len(array[i])):
+                arr.append(array[i][j])
+    else:
+        arr = array
+    return arr
+
 def fittness_score(CSV_loc,data,paths,plot=False):
     exp = larch_init(CSV_loc)
     # print(intervalK)
@@ -113,7 +131,7 @@ def fittness_score(CSV_loc,data,paths,plot=False):
 
 #Anction to calculate fitness
 
-def fitness_individal(exp,arr,paths,params,plot=False,export=False,fig_gui=None):
+def fitness_individal(exp,arr,full_paths,params,plot=False,export=False,fig_gui=None):
     r"""
     Fittness for individual score
     Inputs:
@@ -132,45 +150,64 @@ def fitness_individal(exp,arr,paths,params,plot=False,export=False,fig_gui=None)
     yTotal = [0]*(401)
     offset = 5
     global best
-    # print(params)
+
+    num_comp = len(params['front'])
     base =  Path(os.getcwd()).parent.parent
-    front = os.path.join(base,params['front'])
+
+    compounds_list = params['front']
+    if num_comp > 1:
+        front = [os.path.join(base,i) for i in compounds_list]
+    else:
+        front = os.path.join(base,params['front'][0])
+
     end = '.dat'
     Kmax = params['Kmax']
     SMALL = params['SMALL']
     BIG = params['BIG']
-    export_paths = np.zeros((2*len(paths),401))
+    export_paths = np.zeros((2*len(flatten_2d_list(full_paths)),401))
     if plot:
         fig,ax = plt.subplots(ncols=1,nrows=1,figsize=(7,6))
     if fig_gui !=None:
         ax = fig_gui.add_subplot(111)
-    for i in range(len(paths)):
-        filename = front +str(paths[i]).zfill(4)+end
-        path=feffdat.feffpath(filename, s02=str(arr[i,0]), e0=str(arr[i,1]), sigma2=str(arr[i,2]), deltar=str(arr[i,3]), _larch=mylarch)
 
-        feffdat.path2chi(path, _larch=mylarch)
-        if plot:
-            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path: '+str(paths[i]))
-            ax.set_xlabel("k ($\AA^{-1}$)")
-            ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
-            ax.set_ylim(-10,len(paths)*offset+offset)
-            ax.set_xlim(0,Kmax+1)
+    iterator = 0
+    for i in range(num_comp):
+        if num_comp > 1:
+            paths = full_paths[i]
+        else:
+            paths = full_paths
+        for j in range(len(paths)):
+            if num_comp > 1:
+                filename = front[i] + str(paths[j]).zfill(4) + end
+            else:
+                filename = front + str(paths[j]).zfill(4) + end
+            path=feffdat.feffpath(filename, s02=str(arr[j,0]), e0=str(arr[j,1]), sigma2=str(arr[j,2]), deltar=str(arr[j,3]), _larch=mylarch)
+            feffdat.path2chi(path, _larch=mylarch)
 
-        if fig_gui != None:
-            ax.plot(path.k, path.chi*path.k**2.0 + offset*(i+1),label='Path'+str(paths[i]))
-            ax.set_xlabel("k ($\AA^{-1}$)")
-            ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
-            ax.set_ylim(-10,len(paths)*offset+offset)
-            ax.set_xlim(0,Kmax+1)
+            if plot:
+                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path: '+str(paths[i][j]))
+                ax.set_xlabel("k ($\AA^{-1}$)")
+                ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
+                ax.set_ylim(-10,len(paths)*offset+offset)
+                ax.set_xlim(0,Kmax+1)
 
-        if export:
-            export_paths[2*i,:] = path.k
-            export_paths[2*i+1,:] = (path.chi*path.k**2.0)
+            if fig_gui != None:
+                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path'+str(paths[i][j]))
+                ax.set_xlabel("k ($\AA^{-1}$)")
+                ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
+                ax.set_ylim(-10,len(paths)*offset+offset)
+                ax.set_xlim(0,Kmax+1)
 
-        y = path.chi
+            if export:
+                export_paths[2*iterator,:] = path.k
+                export_paths[2*iterator+1,:] = (path.chi*path.k**2.0)
 
-        for k in intervalK:
-            yTotal[int(k)] += y[int(k)]
+            y = path.chi
+
+            for k in intervalK:
+                yTotal[int(k)] += y[int(k)]
+
+            iterator = iterator + 1
     best.chi = yTotal
     best.k = path.k
     xftf(best.k, best.chi, kmin=KMIN, kmax=KMAX, dk=4, window='hanning',
@@ -198,11 +235,16 @@ def cal_row_generations(i,k,npaths,pop_size):
     end   =  start + npaths
     return start,end
 
-def fitness(exp,arr,paths,params,return_r=True):
+def fitness(exp,arr,full_paths,params,return_r=True):
 
     base =  Path(os.getcwd()).parent.parent
+    compounds_list = params['front']
+    num_comp = len(params['front'])
 
-    front = os.path.join(base,params['front'])
+    if num_comp > 1:
+        front = [os.path.join(base,i) for i in compounds_list]
+    else:
+        front = os.path.join(base,params['front'][0])
     end = '.dat'
 
     loss = 0
@@ -216,27 +258,27 @@ def fitness(exp,arr,paths,params,return_r=True):
     BIG = params['BIG']
     Kweight = params['kweight']
     arr_r = []
-    # print(paths)
     array_str = "---------------------\n"
+    for i in range(num_comp):
+        if num_comp > 1:
+            paths = full_paths[i]
+        else:
+            paths = full_paths
+        for j in range(len(paths)):
+            if num_comp > 1:
+                filename = front[i] + str(paths[j]).zfill(4) + end
+            else:
+                filename = front + str(paths[j]).zfill(4) + end
+            path=feffdat.feffpath(filename, s02=str(arr[j,0]), e0=str(arr[j,1]), sigma2=str(arr[j,2]), deltar=str(arr[j,3]), _larch=mylarch)
+            feffdat.path2chi(path, larch=mylarch)
+            print("Path", paths[j], path.s02, path.e0, path.sigma2, path.reff+arr[j,3])
+            temp = [float(path.s02),float(path.e0),float(path.sigma2),float(path.reff+arr[j,3]),float(path.degen),float(path.nleg),(path.geom)]
+            arr_r.append(temp)
+            y = path.chi
+            for k in intervalK:
+                yTotal[int(k)] += y[int(k)]
 
-    for i in range(len(paths)):
-        filename = front + str(paths[i]).zfill(4) + end
-        # print(filename)
-        path=feffdat.feffpath(filename, s02=str(arr[i,0]), e0=str(arr[i,1]), sigma2=str(arr[i,2]), deltar=str(arr[i,3]), _larch=mylarch)
-        #print(arr[i-1])
-        #print(filename)
-        feffdat.path2chi(path, larch=mylarch)
-        # print("Path", paths[i], path.s02, path.e0, path.sigma2, path.reff+arr[i,3])
-        array_str += "Path " + str(paths[i]) + " " + str(path.s02) + " " + str(path.e0) + " " + str(np.round(float(path.sigma2),4)) + " " + str(np.round(path.reff+arr[i,3],3)) + "\n"
 
-        temp = [float(path.s02),float(path.e0),float(path.sigma2),float(path.reff+arr[i,3]),float(path.degen),float(path.nleg),(path.geom)]
-        arr_r.append(temp)
-
-        y = path.chi
-
-
-        for k in intervalK:
-            yTotal[int(k)] += y[int(k)]
     best.chi = yTotal
     best.k = path.k
     xftf(best.k, best.chi, kmin=Kmin, kmax=Kmax, dk=4, window='hanning',
@@ -286,8 +328,10 @@ def write_individual_csv(gk,gchi,pathk,yTotal,SMALL,BIG,export_path,paths,name='
         writer.writerow(['fit_' + header_base + '.k','fit_' + header_base+'.chi2'])
         write_dat_csv(writer,fit_data)
 
+        # print(paths)
+        full_paths = flatten_2d_list(paths)
         for i in range(int(export_path.shape[0]/2)):
-            path_header = ['path_'+ str(paths[i])+ '_' + header_base +'.k','path_'+str(paths[i])+'_' + header_base+'.chi2']
+            path_header = ['path_'+ str(full_paths[i])+ '_' + header_base +'.k','path_'+str(full_paths[i])+'_' + header_base+'.chi2']
             writer.writerow(path_header)
             write_dat_csv(writer,export_path[(2*i,2*i+1),:].T)
             writer.writerow('')
@@ -376,7 +420,8 @@ def temp_round_deltaR(val):
 def latex_table(paths,best_Fit_r,err_full):
     nleg_arr =[]
     label_arr = []
-    for i in range(len(paths)):
+    full_paths = flatten_2d_list(paths)
+    for i in range(len(full_paths)):
         label_arr.append(convert_label(best_Fit_r[i,6]))
         nleg_arr.append(str(int(best_Fit_r[i,5])))
     latex_table_str = ""
@@ -391,9 +436,9 @@ def latex_table(paths,best_Fit_r,err_full):
                             Path \# & $N$ & $S_0^2$ & $\Delta$E$_0$ (eV) & $\sigma^{2}$ (\AA$^2$) & R (\AA)& Legs & Labels\\
                             \hline""")
 
-    for i in range(len(paths)):
+    for i in range(len(full_paths)):
         prec_arr = cal_err_prec(err_full[i,:4])
-        latex_table_str +=("                        " + str(paths[i]) + " & " +
+        latex_table_str +=("                        " + str(full_paths[i]) + " & " +
               str(int(best_Fit_r[i,4])) + " & " +
               convert_to_str(best_Fit_r[i,0],prec_arr[0]) + r"$\pm$" + convert_to_str(err_full[i,0],prec_arr[0]) + " & " +
               convert_to_str(best_Fit_r[i,1],prec_arr[1]) + r"$\pm$" + convert_to_str(err_full[i,1],prec_arr[1]) + " & " +

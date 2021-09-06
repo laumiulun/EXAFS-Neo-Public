@@ -33,7 +33,7 @@ def atoi(text):
 def natural_keys(text):
     '''
     alist.sort(key=natural_keys) sorts in human order
-    http://nedbatchelder.com/blog/200712/human_sorting.html
+    http://nedbatchelder.com/blog/generate_label200712/human_sorting.html
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
@@ -50,10 +50,11 @@ class EXAFS_Analysis:
     def __init__(self,paths,dirs,params):
         self.paths = paths
         # Generate Label for plotting
-        self.label = larch_score.generate_labels(self.paths)[0]
+        self.flat_paths = larch_score.flatten_2d_list(self.paths)
+        self.label = larch_score.generate_labels(self.flat_paths)[0]
         self.params = params
         self.dirs = dirs
-        self.num_paths = len(paths)
+        self.num_paths = len(self.flat_paths)
         self.num_params = 3*self.num_paths + 1
         self.return_str = ""
         if 'optimize' not in params:
@@ -264,6 +265,7 @@ class EXAFS_Analysis:
         self.latex_table_str = latex_table_str
         if print_table:
             print(self.latex_table_str)
+
     def individual_fit(self,plot=False,fig_gui=None):
         r"""
         Perform fittness calculation separately for each paths
@@ -273,6 +275,10 @@ class EXAFS_Analysis:
         self.ind_export_paths = export_paths
 
     def write_latex_csv(self,file_name=''):
+        if hasattr('self','latex_table_str'):
+            print('Attribute Exists')
+        else:
+            self.construct_latex_table()
         if file_name !=None:
             with open(file_name,mode='w',newline='',encoding='utf-8') as write_file:
                 write_file.write(self.latex_table_str)
@@ -307,7 +313,7 @@ class EXAFS_Analysis:
             self.export_igor_individual()
 
     def construct_bestfit_err_mat(self,full_mat,bestfit_full_mat,paths,plot=False):
-        r"""
+        """
         Construct the average best fit matrix using the sum of the files, and
         generate the corresponding labels using the paths provided.
 
@@ -401,10 +407,10 @@ class EXAFS_Analysis:
         f.write('•AppendToGraph fit_' + self.header + '_chi2 vs fit_' +\
             self.header + '_k;' )
         f.write('\n')
-
-        for i in range(len(self.paths)):
-            f.write('•AppendToGraph path_' + str(self.paths[i]) + '_'+ self.header+ \
-                '_chi2 vs path_' + str(self.paths[i]) +'_'+ self.header + '_k;' )
+        full_paths = larch_score.flatten_2d_list(self.paths)
+        for i in range(len(full_paths)):
+            f.write('•AppendToGraph path_' + str(full_paths[i]) + '_'+ self.header+ \
+                '_chi2 vs path_' + str(full_paths[i]) +'_'+ self.header + '_k;' )
             f.write('\n')
 
         f.write('•SetAxis bottom *,11');f.write('\n')
@@ -414,27 +420,27 @@ class EXAFS_Analysis:
         # Todo:
             # Need to redesign this later!
 
-        if len(self.paths) < 3:
-            if len(self.paths) == 1:
-                f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
-            elif len(self.paths) == 2:
-                        f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
-                        f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
+        if len(full_paths) < 3:
+            if len(full_paths) == 1:
+                f.write('•ModifyGraph offset(path_' + str(full_paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+            elif len(full_paths) == 2:
+                        f.write('•ModifyGraph offset(path_' + str(full_paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+                        f.write('•ModifyGraph offset(path_' + str(full_paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
         else:
-            f.write('•ModifyGraph offset(path_' + str(self.paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
-            f.write('•ModifyGraph offset(path_' + str(self.paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
-            f.write('•ModifyGraph offset(path_' + str(self.paths[2]) + '_' + self.header + '_chi2)={0,12.5}');f.write('\n')
+            f.write('•ModifyGraph offset(path_' + str(full_paths[0])+ '_'+self.header + '_chi2)={0,5}');f.write('\n')
+            f.write('•ModifyGraph offset(path_' + str(full_paths[1]) + '_' + self.header + '_chi2)={0,10}');f.write('\n')
+            f.write('•ModifyGraph offset(path_' + str(full_paths[2]) + '_' + self.header + '_chi2)={0,12.5}');f.write('\n')
 
         # offset the rest
-        for i in range(len(self.paths)-3):
-            curr_paths = str(self.paths[i+3])
+        for i in range(len(full_paths)-3):
+            curr_paths = str(full_paths[i+3])
             f.write('•ModifyGraph offset(path_' + curr_paths + '_' +self.header + '_chi2)={0,' + str(15 + i) + '}' )
             f.write('\n')
         f.write(r'•Label left "k\\S2\\M \u03c7(k) (Å\\S-2\\M)";DelayUpdate');f.write('\n')
         f.write(r'•Label bottom "k (Å\\S-1\\M)"');f.write('\n')
         f.write('•ModifyGraph lsize(fit_' + self.header  + '_chi2)=2');f.write('\n')
-        for i in range(len(self.paths)):
-            f.write('•ModifyGraph lsize(path_' + str(self.paths[i]) + '_' + self.header + '_chi2)=2')
+        for i in range(len(full_paths)):
+            f.write('•ModifyGraph lsize(path_' + str(full_paths[i]) + '_' + self.header + '_chi2)=2')
             f.write('\n')
         ## Legend
         # \r  - new line
@@ -443,16 +449,20 @@ class EXAFS_Analysis:
         f.write('•ModifyGraph mode(data_' + self.header  + '_chi2)=3');f.write('\n')
 
     def create_legend(self,f):
+        """
+        Create legend for igor
+        """
         legend_header = r'•Legend/C/N=text0/J "Test\rk\\S2\\M\u03c7(k)\rTest_Detail\r\r\\s('
         legend_1 = 'data_' + self.header + r"_chi2) Data\r\\s(fit_" + self.header + r'_chi2) Fit";'
         legend = legend_header + legend_1
         f.write(legend); f.write('\n')
-        for i in range(len(self.paths)):
+        full_paths = larch_score.flatten_2d_list(self.paths)
+        for i in range(len(full_paths)):
             if int(self.nleg_arr[i]) > 2:
                 addition = ' MS '
             else:
                 addition = ' '
-            paths_arr = str(self.paths[i]) + '_' + self.header + '_chi2) Path ' + str(self.paths[i]) + addition + self.label_arr[i] + r'";DelayUpdate'
+            paths_arr = str(full_paths[i]) + '_' + self.header + '_chi2) Path ' + str(full_paths[i]) + addition + self.label_arr[i] + r'";DelayUpdate'
             f.write('•AppendText/N=text0 "\\s(path_'+ paths_arr)
             f.write('\n')
     # Adjust the color using jet reverse color bar
@@ -465,8 +475,8 @@ class EXAFS_Analysis:
             color_map (cmp): matplotlib.cm.cmap objects, default to
                 plt.cm.jet_r
         """
-
-        x = np.linspace(0,1,len(self.paths))
+        full_paths = larch_score.flatten_2d_list(self.paths)
+        x = np.linspace(0,1,len(full_paths))
         color = [color_map(i) for i in x]
         test = 65535;
         for i in range(len(color)):
@@ -474,7 +484,7 @@ class EXAFS_Analysis:
         # Change to X and Y for data
         f.write('•ModifyGraph rgb(fit_' + self.header + '_chi2)=(0,0,0)');f.write('\n')
         for i in range(len(color)):
-            f.write('•ModifyGraph rgb(path_' + str(self.paths[i]) + '_' + self.header + '_chi2)=' + str(color[i]))
+            f.write('•ModifyGraph rgb(path_' + str(full_paths[i]) + '_' + self.header + '_chi2)=' + str(color[i]))
             f.write('\n')
 
     def jet_r(self,x):
