@@ -1,6 +1,10 @@
 # EXAFS Neo
 #### Versions: 0.9.6
-#### Last update: Aug 23, 2021
+#### Last update: Jul 28, 2021
+
+<!-- ![example workflow](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/<WORKFLOW_FILE>/badge.svg) -->
+
+[![Test with Ubuntu, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml)[![Test with Windows, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml)
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
@@ -12,7 +16,8 @@ It is highly recommend to utilize `anaconda` or `pip` package managers to preven
   - Larch: >0.9.47
   - Matplotlib: 3.1.2
 
-It is highly recommend to create a new environment in `anaconda` to run EXAFS Neo to prevent packages conflicts.
+It is highly recommend to create a new environment in `anaconda` to run EXAFS Neo to prevent packages conflicts. For `Windows` operating system, if you encounter a issue requiring "Microsoft C++ 14.0 or greater is needed", please download the tools at the following location [`C++ Tools`](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure to select C++ build tools during installation process.
+
 
         # Create new environment
         conda config --add channels conda-forge
@@ -32,11 +37,12 @@ It is highly recommend to create a new environment in `anaconda` to run EXAFS Ne
         pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
         pip install xraylarch
 
+
 ## Installations
 To install EXAFS Neo, simply clone the repo:
 
-        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
-        cd EXAFS-Neo-Public/
+        git clone https://github.com/laumiulun/EXAFS_Neo.git
+        cd EXAFS_Neo/
         pip install .
 
 ## Usage:
@@ -72,9 +78,13 @@ We also have provided a GUI for use in additions to our program, with additional
 ## Video Demonstrations
 You can see a list of video demonstrations of the EXAFS Neo package presented, future presentation related to this software will be posted as they are available
 
-- https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy [Aug 23,2021] (IIT EXAFS Workshop 2021)
+<!-- - https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy [Aug 23,2021] (IIT EXAFS Workshop 2021)
 - https://youtu.be/KwhItvwhapg [Feb 15, 2021] (University of Washington)
-- https://youtu.be/jqISqq_FFR8 [Dec 10, 2020] (Canadian Light Source)
+- https://youtu.be/jqISqq_FFR8 [Dec 10, 2020] (Canadian Light Source) -->
+
+- [IIT EXAFS Workshop 2021](https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy) (Aug 23,2021)
+- [University of Washington](https://youtu.be/KwhItvwhapg) (Feb 15, 2021)
+- [Canadian Light Source](https://youtu.be/jqISqq_FFR8) (Dec 10, 2020)
 
 ## Citation:
 
