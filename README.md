@@ -4,7 +4,7 @@
 
 <!-- ![example workflow](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/<WORKFLOW_FILE>/badge.svg) -->
 
-[![Test with Ubuntu, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml)[![Test with Windows, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml)
+[![Test with Ubuntu, Miniconda](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_ubuntu.yml/badge.svg)](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_ubuntu.yml)[![Test with Windows, Miniconda](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_windows.yml/badge.svg)](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_windows.yml)
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
