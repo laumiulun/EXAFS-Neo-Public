@@ -490,13 +490,17 @@ class EXAFS_GA:
             self.logger.info("Mutation Percentage" + str(np.round(self.nmutate_success/self.nmutate,4)))
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
         if self.printgraph:
-            total = self.globBestFit[0].verbose_yTotal(self.intervalK)
-            plt.figure()
-            plt.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,label='exp')
-            plt.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,label='Machine Learning')
-            plt.legend()
-            plt.pause(0.01)
-            plt.show()
+            # total = self.globBestFit[0].verbose_yTotal(self.intervalK)
+            self.verbose_graph()
+
+    def verbose_graph(self):
+        total = self.globBestFit[0].verbose_yTotal(self.intervalK)
+        plt.figure()
+        plt.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,label='Experiments')
+        plt.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,label='Machine Learning')
+        plt.legend()
+        plt.pause(0.01)
+        plt.show()
 
     def detect_and_adjust_limits(self):
         """
@@ -714,7 +718,7 @@ class EXAFS_GA:
                                     sigma2=str(arr[i, 2]), deltar=str(arr[i, 3]), _larch=self.mylarch)
             feffdat.path2chi(path, _larch=self.mylarch)
 
-            xftf(path.k,path.chi*path.k**2,kmin=self.Kmin,kmax=self.Kmax,dk=4,
+            xftf(path.k,path.chi*path.k**self.Kweight,kmin=self.Kmin,kmax=self.Kmax,dk=4,
                 window='hanning',kweight=self.Kweight,group=path,_larch = self.mylarch)
 
             area = simps(path.chir_mag,path.r)
@@ -771,9 +775,9 @@ class EXAFS_GA:
                 fitness_arr.append(self.sorted_population[i][1])
 
             cum_prob= np.array(fitness_arr)/totalFitness
-            # print(np.sum(cum_prob))
-            # print(totalFitness)
-            # print(cum_prob)
+            print(np.sum(cum_prob))
+            print(totalFitness)
+            print(cum_prob)
             # sys.exit()
         self.Populations = self.nextPopulation
 
@@ -862,6 +866,7 @@ class EXAFS_GA:
         """
         Verbose end
         """
+        self.verbose_graph()
         self.logger.info("-----------Output Stats---------------")
         self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_path}")

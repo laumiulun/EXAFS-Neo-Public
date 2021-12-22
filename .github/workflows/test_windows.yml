@@ -9,7 +9,7 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8','3.9']
+        python-version: ['3.7', '3.8']
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python from Miniconda
@@ -30,10 +30,7 @@ jobs:
         printenv
         pip install wxmplot wxutils
         pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb
-        pip install xraylarch
+        python setup.py install
     - name: Run test suite
       run: |
-        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
-        cd EXAFS-Neo-Public
-        python setup.py install
-        ./test
+        ./run_test

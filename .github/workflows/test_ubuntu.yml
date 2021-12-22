@@ -46,10 +46,8 @@ jobs:
     - name: Install xraylarch and other dependencies with pip
       run: |
         pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
-        pip install xraylarch
+        python setup.py install
     - name: Run test suite
       run: |
-        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
-        cd EXAFS-Neo-Public
-        python setup.py install
-        ./test
+        python -m unittest discover -s tests -v
+        

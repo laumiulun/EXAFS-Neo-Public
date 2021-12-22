@@ -1,10 +1,10 @@
 # EXAFS Neo
-#### Versions: 0.9.6
-#### Last update: Jul 28, 2021
+#### Versions: 0.9.7
+#### Last update: Dec 22, 2021
 
 <!-- ![example workflow](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/<WORKFLOW_FILE>/badge.svg) -->
 
-[![Test with Ubuntu, Miniconda](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_ubuntu.yml/badge.svg)](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_ubuntu.yml)[![Test with Windows, Miniconda](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_windows.yml/badge.svg)](https://github.com/laumiulun/EXAFS-Neo-Public/actions/workflows/test_windows.yml)
+[![Test with Ubuntu, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_ubuntu.yml)[![Test with Windows, Miniconda](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml/badge.svg?branch=unit_tests)](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/test_windows.yml)
 
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
@@ -43,7 +43,7 @@ To install EXAFS Neo, simply clone the repo:
 
         git clone https://github.com/laumiulun/EXAFS_Neo.git
         cd EXAFS_Neo/
-        pip install .
+        python setup.py install
 
 ## Usage:
 To run a sample test, make sure the environment is set correctly, and select a input file:
@@ -65,13 +65,13 @@ EXAFS also provides a internal option to perform self-adsorption on the sample f
 EXAFS Neo is under active development, to update the code after pulling from the repository:
 
         git pull --rebase
-        pip install .
+        python setup.py install
 
 
 ## GUI
 We also have provided a GUI for use in additions to our program, with additional helper script to facilitate post-analysis. To use the GUI:
 
-        cd gui
+        cd gui/
         python XAFS_GUI.py
 
 
