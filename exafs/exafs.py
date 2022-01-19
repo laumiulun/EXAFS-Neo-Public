@@ -34,6 +34,9 @@ class EXAFS_GA:
         self.ind_options = individual_path
         self.ncomp = num_compounds
         self.printgraph = printgraph
+        if self.printgraph:
+            self.fig = plt.figure()
+            self.ax = self.fig.add_subplot(111)
         self.pathrange_file = pathrange_file
         self.debug_mode = debug_mode
 
@@ -493,14 +496,33 @@ class EXAFS_GA:
             # total = self.globBestFit[0].verbose_yTotal(self.intervalK)
             self.verbose_graph()
 
-    def verbose_graph(self):
+    def verbose_graph(self,end=False):
         total = self.globBestFit[0].verbose_yTotal(self.intervalK)
-        plt.figure()
-        plt.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,label='Experiments')
-        plt.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,label='Machine Learning')
-        plt.legend()
-        plt.pause(0.01)
-        plt.show()
+        # plt.figure()
+        xlabel = "k ($\AA^{-1}$)"
+        ylabel = "k$^{" + str(int(self.Kweight)) + "}$ ($\chi(k)\AA^{-" + str(int(self.Kweight)) +"}$)"
+        title = 'Generation: ' + str(self.genNum)
+        if end==True:
+            plt.figure()
+            plt.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,'b',label='Experiments')
+            plt.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,'r',label='Machine Learning')
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title('Final')
+            plt.legend()
+            plt.show()
+            # plt.pause(0.01)
+        else:
+            self.ax.plot(self.g.k,self.g.chi*self.g.k**self.Kweight,'b',label='Experiments')
+            self.ax.plot(self.g.k[self.small:self.big],total[self.small:self.big]*self.g.k[self.small:self.big]**self.Kweight,'r',label='Machine Learning')
+            self.ax.legend()
+            # self.ax.set_title('Generation: ' + str())
+            self.ax.set_xlabel(xlabel)
+            self.ax.set_ylabel(ylabel)
+            self.ax.set_title(title)
+            plt.show(block=False)
+            plt.pause(0.001)
+            plt.cla()
 
     def detect_and_adjust_limits(self):
         """
@@ -866,13 +888,13 @@ class EXAFS_GA:
         """
         Verbose end
         """
-        self.verbose_graph()
         self.logger.info("-----------Output Stats---------------")
         self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_path}")
         self.logger.info(f"{bcolors.BOLD}Path{bcolors.ENDC}: {self.path_lists}")
         self.logger.info(f"{bcolors.BOLD}Final Fittness Score{bcolors.ENDC}: {self.globBestFit[1]}")
         self.logger.info("-------------------------------------------")
+        self.verbose_graph(end=True)
 
     def run(self,detect_limits=False):
         """
@@ -889,9 +911,8 @@ class EXAFS_GA:
                 self.findE0()
             if i > int(0.5*self.ngen)-1:
                 self.secondhalf = True
-            # print(self.bestE0)
-            # print(self.ngen)
-            # print(self.secondhalf)
+
+
             exit = self.check_steady_state()
             if exit == True:
                 break

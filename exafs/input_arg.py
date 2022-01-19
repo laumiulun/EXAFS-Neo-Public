@@ -9,7 +9,6 @@ parser.add_argument("-t",help = "Timeing mode",action="store_true")
 parser.add_argument("-d",help = "Debug mode",action="store_true")
 
 args = parser.parse_args()
-
 if len(sys.argv)==1:
     parser.print_help(sys.stderr)
     sys.exit(1)
