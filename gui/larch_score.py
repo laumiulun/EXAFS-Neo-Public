@@ -171,6 +171,9 @@ def fitness_individal(exp,arr,full_paths,params,plot=False,export=False,fig_gui=
         ax = fig_gui.add_subplot(111)
 
     iterator = 0
+    # print(num_comp)
+
+
     for i in range(num_comp):
         if num_comp > 1:
             paths = full_paths[i]
@@ -235,6 +238,7 @@ def cal_row_generations(i,k,npaths,pop_size):
     end   =  start + npaths
     return start,end
 
+
 def fitness(exp,arr,full_paths,params,return_r=True):
 
     base =  Path(os.getcwd()).parent.parent
@@ -259,6 +263,8 @@ def fitness(exp,arr,full_paths,params,return_r=True):
     Kweight = params['kweight']
     arr_r = []
     array_str = "---------------------\n"
+
+    
     for i in range(num_comp):
         if num_comp > 1:
             paths = full_paths[i]

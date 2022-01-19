@@ -11,7 +11,7 @@ import sys,glob,re,os
 import numpy as np
 import matplotlib.pyplot as plt
 import larch_score
-from larch_plugins.xafs import xftf
+from larch.xafs import autobk, xftf
 from scipy.integrate import simps
 import re
 import fnmatch
@@ -66,7 +66,6 @@ class EXAFS_Analysis:
             self.series = self.params['series']
             self.series_index = self.params['series_index']
 
-
     def read_optimize_paths(self,files_opt):
         optimize_path = []
         for i in range(len(files_opt)):
@@ -101,6 +100,7 @@ class EXAFS_Analysis:
             files_opt = []
             files_opt_data = []
 
+
         if os.path.isdir(folder) == True:
             self.params['individual'] = False
 
@@ -110,39 +110,36 @@ class EXAFS_Analysis:
             f = os.listdir(folder)
             f.sort(key = natural_keys)
             for file in f:
-
+                # various checks in place
+                # print(file,fnmatch.fnmatch(file,'*_data.csv'))
                 if series == False:
-                    # if re.search('test_\d+_data.csv',file):
                     if fnmatch.fnmatch(file,'*_data.csv'):
                         files.append(os.path.join(folder, file))
                 elif series == True:
-                    # print(search_string)
-                    # if re.search(search_string,file):
                     if fnmatch.fnmatch(file,search_string):
                         files.append(os.path.join(folder, file))
-                    # print(" ",file)
                 elif self.params['optimize'] == True:
-                    # if re.search('test_\d+_optimized_data.csv',file):
                     if re.search('test_\d+_optimized.csv',file):
                         files_opt.append(os.path.join(folder, file))
                     if re.search('test_\d+_optimized_data.csv',file):
                         files_opt_data.append(os.path.join(folder, file))
-
         else:
             self.params['individual'] = True
             files.append(folder)
         print(folder)
-
         files.sort(key=natural_keys)
         if self.params['optimize'] == True:
             files_opt.sort(key=natural_keys)
             files_opt_data.sort(key=natural_keys)
             self.read_optimize_paths(files_opt)
-
+        # loop through all the files:
+        # 1.
         for i in range(len(files)):
             file = files[i]
             try:
+                # check if the paths exists first
                 os.path.exists(file)
+                # read the resulting csv
                 gen_csv = np.genfromtxt(file,delimiter=',')
                 gen_csv_unflatten = gen_csv.reshape((-1,4*num_path))
 
@@ -162,11 +159,12 @@ class EXAFS_Analysis:
                 pass
 
         return full_mat,best_full_mat
-    def extract_data(self):
+    def extract_data(self,data=None):
         r"""
         Extract data value using array data
         """
-        full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
+        if data == None:
+            full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
         bestFit,err = self.construct_bestfit_err_mat(full_mat,bestfit_full_mat,self.paths)
         if self.params['individual']:
             best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
@@ -190,6 +188,7 @@ class EXAFS_Analysis:
         self.small = params['SMALL']
         self.big = params['BIG']
         self.intervalK = params['intervalK']
+        self.kweight = params['kweight']
         self.mylarch = mylarch
 
     def larch_score(self,return_r=False):
@@ -221,11 +220,16 @@ class EXAFS_Analysis:
         """
         SMALL = self.small
         BIG = self.big
+
+        self.best.k = self.path.k
+        self.best.chi = self.yTotal
+        xftf(self.best.k,self.best.chi,kmin=self.params['Kmin'],kmax=self.params['Kmax'],dk=4,window='hanning',kweight=self.kweight,group=self.best)
+
         if fig_gui == None:
             fig, ax = plt.subplots(1, 2,figsize=(15,5))
 
-            ax[0].plot(self.g.k, self.g.chi*self.g.k**2,'b--',label="Experiment Data")
-            ax[0].plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'r-',label="Genetic Algorithm")
+            ax[0].plot(self.g.k, self.g.chi*self.g.k**self.kweight,'b--',label="Experiment Data")
+            ax[0].plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**self.kweight,'r-',label="Genetic Algorithm")
             ax[0].legend()
             ax[0].set_title(title + " K Space")
 
@@ -236,8 +240,8 @@ class EXAFS_Analysis:
         else:
             ax = fig_gui.add_subplot(121)
 
-            ax.plot(self.g.k, self.g.chi*self.g.k**2,'b--',label="Experiment Data")
-            ax.plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**2,'r-',label="Genetic Algorithm")
+            ax.plot(self.g.k, self.g.chi*self.g.k**self.kweight,'b--',label="Experiment Data")
+            ax.plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**self.kweight,'r-',label="Genetic Algorithm")
             ax.legend()
             ax.set_title(title + " K Space")
 
@@ -282,6 +286,17 @@ class EXAFS_Analysis:
         if file_name !=None:
             with open(file_name,mode='w',newline='',encoding='utf-8') as write_file:
                 write_file.write(self.latex_table_str)
+
+    def get_data(self):
+        SMALL = self.small
+        BIG = self.big
+        data_x = self.g.k[SMALL:BIG]
+        data_y = self.g.chi[SMALL:BIG]*self.g.k[SMALL:BIG]**self.kweight
+        model_x = self.path.k[SMALL:BIG]
+        model_y = self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**self.kweight
+
+        error_full = larch_score.construct_full_err(self.err)
+        return (data_x,data_y,model_x,model_y),error_full
 
 
     def export_files(self,header='test',dirs='',igor_true = False):
@@ -366,7 +381,8 @@ class EXAFS_Analysis:
         total_area = 0
         contrib = []
         contrib_area = []
-        for i in range(len(self.paths)):
+        # print(self.num_paths)
+        for i in range(self.num_paths):
             self.best.k = self.ind_export_paths[2*i,:]
             self.best.chi = self.ind_export_paths[2*i+1,:]
 
@@ -387,8 +403,8 @@ class EXAFS_Analysis:
         new_path = (np.argwhere(np.array(contrib_ap) >= number)).flatten()+1
         print("New Paths")
         print(new_path)
-        plt.bar(self.paths,height= contrib_ap)
-        plt.xticks(self.paths)
+        plt.bar(np.arange(self.num_paths),height= contrib_ap)
+        plt.xticks(np.arange(self.num_paths),self.flat_paths)
         # plt.ylim([0,100])
         # print(new_path)
     def export_igor_individual(self,file_paths='export_ind.ipf'):
@@ -491,6 +507,35 @@ class EXAFS_Analysis:
 
         return plt.cm.jet_r(x)
 
+    def stacks_plot(self):
+        # print(self.num_paths)
+        # get the array size first:
+        self.best.k = self.ind_export_paths[0,:]
+        self.best.chi = self.ind_export_paths[1,:]
+        xftf(self.best.k, self.best.chi, kmin=self.params['Kmin'], kmax=self.params['Kmax'], dk=4,
+        window='hanning',kweight=self.params['kweight'], group=self.best, _larch=self.mylarch)
+        y_arr = np.zeros((self.num_paths,len(self.best.r)))
+        y_tot = np.zeros(len(self.best.r))
+        # grab all the data
+        for i in range(self.num_paths):
+            self.best.k = self.ind_export_paths[2*i,:]
+            self.best.chi = self.ind_export_paths[2*i+1,:]
+
+            xftf(self.best.k, self.best.chi, kmin=self.params['Kmin'], kmax=self.params['Kmax'], dk=4,
+            window='hanning',kweight=self.params['kweight'], group=self.best, _larch=self.mylarch)
+            y_arr[i,:] = self.best.chir_mag
+            y_tot += self.best.chir_mag
+            # print(len(self.best.chir_mag))
+        x = self.best.r
+        # print(y_arr)
+        # print(x.shape)
+        # print(y_arr.shape)
+        # print(y_arr.shape)
+        plt.figure()
+        plt.plot(x,y_tot)
+        plt.figure()
+        plt.stackplot(x,y_arr,labels=np.arange(1,self.num_paths+1))
+        plt.legend()
 
 
 def calculate_occurances(folder_name,paths,limits=20):
