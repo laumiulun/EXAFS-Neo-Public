@@ -41,7 +41,7 @@ It is highly recommend to create a new environment in `anaconda` to run EXAFS Ne
 ## Installations
 To install EXAFS Neo, simply clone the repo:
 
-        git clone https://github.com/laumiulun/EXAFS_Neo.git
+        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
         cd EXAFS_Neo/
         python setup.py install
 
