@@ -82,7 +82,7 @@ You can see a list of video demonstrations of the EXAFS Neo package presented, f
 - https://youtu.be/KwhItvwhapg [Feb 15, 2021] (University of Washington)
 - https://youtu.be/jqISqq_FFR8 [Dec 10, 2020] (Canadian Light Source) -->
 
-- [IIT EXAFS Workshop 2021](https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy) (Aug 23,2021)
+- [Demonstration Videos From IIT EXAFS Workshop 2021](https://www.youtube.com/playlist?list=PLqZCvArs4yF8IrREQ3AzZJX2N-IRAPEmy) (Aug 23,2021)
 - [University of Washington](https://youtu.be/KwhItvwhapg) (Feb 15, 2021)
 - [Canadian Light Source](https://youtu.be/jqISqq_FFR8) (Dec 10, 2020)
 
