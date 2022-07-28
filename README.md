@@ -35,7 +35,7 @@ It is highly recommend to create a new environment in `anaconda` to run EXAFS Ne
 
         # Install lmfits and Xraylarch using Pip
         pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
-        pip install xraylarch==0.9.57
+        pip install xraylarch==0.9.58
 
 
 ## Installations
