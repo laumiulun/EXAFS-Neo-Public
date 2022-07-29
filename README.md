@@ -36,6 +36,19 @@ It is highly recommend to create a new environment in `anaconda` to run EXAFS Ne
         # Install lmfits and Xraylarch using Pip
         pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
         pip install xraylarch==0.9.58
+        
+        # Create the larch desktop icons
+        larch -m 
+        
+        # Run larch to test
+        larch
+        
+        # Exit larch after successfully running on the command line
+        exit
+        
+        
+        #If necessary install git (We think this is Windows only)
+        conda install git
 
 
 ## Installations
