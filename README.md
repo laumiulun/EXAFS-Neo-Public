@@ -63,7 +63,10 @@ To run a sample test, make sure the environment is set correctly, and select a i
 
         exafs -i test/test.ini
 
-The datafile requires header contain at least either a combination of (k, chi) or (energy, mu). It also requires a minimum of one newline for it to work correctly. An example of the correct header is as follow:
+The datafile requires header contain at least either a combination of (k, chi) or (energy, mu). It also requires a minimum of one newline for it to work correctly. Examples of the correct headers are as follows:
+
+        #---------------------------------------------------------------------
+        #  energy mu Io It Iref
 
         #---------------------------------------------------------------------
         #  k chi chik chik2 chik3 win energy
