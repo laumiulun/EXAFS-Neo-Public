@@ -1,6 +1,6 @@
 # EXAFS Neo
 #### Versions: 0.9.8
-#### Last update: Mar 22, 2021
+#### Last update: Sep 02, 2021
 
 <!-- ![example workflow](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/<WORKFLOW_FILE>/badge.svg) -->
 
