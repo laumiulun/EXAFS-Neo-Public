@@ -179,6 +179,8 @@ def fitness_individal(exp,arr,full_paths,params,plot=False,export=False,fig_gui=
             paths = full_paths[i]
         else:
             paths = full_paths
+
+        print(paths)
         for j in range(len(paths)):
             if num_comp > 1:
                 filename = front[i] + str(paths[j]).zfill(4) + end
@@ -188,14 +190,14 @@ def fitness_individal(exp,arr,full_paths,params,plot=False,export=False,fig_gui=
             feffdat.path2chi(path, _larch=mylarch)
 
             if plot:
-                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path: '+str(paths[i][j]))
+                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path:')
                 ax.set_xlabel("k ($\AA^{-1}$)")
                 ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
                 ax.set_ylim(-10,len(paths)*offset+offset)
                 ax.set_xlim(0,Kmax+1)
 
             if fig_gui != None:
-                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path'+str(paths[i][j]))
+                ax.plot(path.k, path.chi*path.k**2.0 + offset*(iterator+1),label='Path')
                 ax.set_xlabel("k ($\AA^{-1}$)")
                 ax.set_ylabel("k$^{2}$ ($\chi(k)\AA^{-1}$)")
                 ax.set_ylim(-10,len(paths)*offset+offset)
@@ -221,7 +223,7 @@ def fitness_individal(exp,arr,full_paths,params,plot=False,export=False,fig_gui=
         ax.plot(g.k,g.chi*g.k**2+offset,'r--',label='Data')
         ax.plot(path.k[SMALL:BIG], yTotal[SMALL:BIG]*path.k[SMALL:BIG]**2+offset,'b--',label="GA")
         ax.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
-        fig_gui.tight_layout()
+        # fig_gui.tight_layout()
 
 
     for j in intervalK:
@@ -263,8 +265,7 @@ def fitness(exp,arr,full_paths,params,return_r=True):
     Kweight = params['kweight']
     arr_r = []
     array_str = "---------------------\n"
-
-    
+    print(num_comp)
     for i in range(num_comp):
         if num_comp > 1:
             paths = full_paths[i]
@@ -275,7 +276,12 @@ def fitness(exp,arr,full_paths,params,return_r=True):
                 filename = front[i] + str(paths[j]).zfill(4) + end
             else:
                 filename = front + str(paths[j]).zfill(4) + end
-            path=feffdat.feffpath(filename, s02=str(arr[j,0]), e0=str(arr[j,1]), sigma2=str(arr[j,2]), deltar=str(arr[j,3]), _larch=mylarch)
+            # print(j*num_comp+1)
+            # print(i,j)
+            # print(i*num_paths + j)
+            k = 20*i + j
+            # print(k)
+            path=feffdat.feffpath(filename, s02=str(arr[k,0]), e0=str(arr[k,1]), sigma2=str(arr[k,2]), deltar=str(arr[k,3]), _larch=mylarch)
             feffdat.path2chi(path, larch=mylarch)
             print("Path", paths[j], path.s02, path.e0, path.sigma2, path.reff+arr[j,3])
             temp = [float(path.s02),float(path.e0),float(path.sigma2),float(path.reff+arr[j,3]),float(path.degen),float(path.nleg),(path.geom)]

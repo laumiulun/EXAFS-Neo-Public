@@ -6,7 +6,7 @@ Date       July 4, 2021
 
 Constains misc functions for GUI
 """
-import platform,re
+import platform,re,sys,os
 
 def get_platform():
     os_name = platform.system()
@@ -22,6 +22,23 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
+
+def check_sabcor_folder(ostype):
+    # check sabcor folder if it initialize
+    if ostype == "Windows":
+            print("Window doesn't have sabcor capabilites, continue without sabcor")
+    else:
+        if not os.listdir('../contrib/sabcor'):
+            print("Please Initialize \"Sabcor\" as submodules")
+            exit()
+        else:
+            
+            if os.path.exists('../contrib/sabcor/sabcor'):
+                print("Please make the sabcor exectuable first in '../contrib/sabcor' directory")
+            else:
+                sys.path.insert(1,'../contrib/sabcor')
+                from sabcor import check_executable
 
 class bcolors:
     HEADER = '\033[95m'

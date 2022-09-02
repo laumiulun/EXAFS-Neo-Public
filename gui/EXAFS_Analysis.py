@@ -85,7 +85,7 @@ class EXAFS_Analysis:
         self.optimize_path = optimize_path
 
     def read_result_files(self,folder,series=False,series_index=None):
-        r"""
+        """
         read result files (helper function)
 
         Inputs:
@@ -159,6 +159,7 @@ class EXAFS_Analysis:
                 pass
 
         return full_mat,best_full_mat
+
     def extract_data(self,data=None):
         r"""
         Extract data value using array data
@@ -166,10 +167,12 @@ class EXAFS_Analysis:
         if data == None:
             full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
         bestFit,err = self.construct_bestfit_err_mat(full_mat,bestfit_full_mat,self.paths)
+        print(self.params['individual'])
+        
         if self.params['individual']:
             best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
         else:
-            best_Fit = np.mean(bestfit_full_mat,axis=0).reshape(-1,4).round(6)
+            best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
 
         print(best_Fit)
         self.bestFit = bestFit
@@ -214,7 +217,7 @@ class EXAFS_Analysis:
         self.best_Fit_r = np.array(best_Fit_r)
         print(self.return_str)
 
-    def plot(self,title='Test',fig_gui=None):
+    def plot(self,title='Test',fig_gui=None,show=False):
         r"""
         Plot the K and R Space
         """
@@ -230,6 +233,7 @@ class EXAFS_Analysis:
 
             ax[0].plot(self.g.k, self.g.chi*self.g.k**self.kweight,'b--',label="Experiment Data")
             ax[0].plot(self.path.k[SMALL:BIG], self.yTotal[SMALL:BIG]*self.path.k[SMALL:BIG]**self.kweight,'r-',label="Genetic Algorithm")
+            ax[0].set_xlim((0,self.params['Kmax']))
             ax[0].legend()
             ax[0].set_title(title + " K Space")
 
@@ -523,19 +527,42 @@ class EXAFS_Analysis:
 
             xftf(self.best.k, self.best.chi, kmin=self.params['Kmin'], kmax=self.params['Kmax'], dk=4,
             window='hanning',kweight=self.params['kweight'], group=self.best, _larch=self.mylarch)
-            y_arr[i,:] = self.best.chir_mag
+            y_arr[i,:] = -self.best.chir_mag
             y_tot += self.best.chir_mag
             # print(len(self.best.chir_mag))
         x = self.best.r
-        # print(y_arr)
-        # print(x.shape)
-        # print(y_arr.shape)
-        # print(y_arr.shape)
-        plt.figure()
-        plt.plot(x,y_tot)
-        plt.figure()
-        plt.stackplot(x,y_arr,labels=np.arange(1,self.num_paths+1))
-        plt.legend()
+
+    
+        plt.rc('font',size=11)
+        rc = {"font.family" : "serif",
+            "mathtext.fontset" : "stix"}
+        plt.rcParams.update(rc)
+        plt.rcParams["font.serif"] = ["Times New Roman"] + plt.rcParams["font.serif"]
+
+
+
+        figsize = (10,7)
+        linewidth = 1.0
+        edgecolor = 'black'
+        capsize = 5
+        spacing = 0.2
+        color = 'royalblue'
+        label_fontsize=14
+
+        fig,ax = plt.subplots(ncols=1,nrows=1,figsize=figsize)
+        ax.set_xlabel('R, uncorrected ($\AA$)')
+        ax.set_ylabel('|$\chi$(R)| ($\AA^{3}$)')
+
+        ax.plot(x,y_tot,'k',linestyle='solid',linewidth=linewidth,label='Fits')
+        ax.stackplot(x,y_arr,labels=np.arange(1,self.num_paths+1))
+
+        # ax.set_xlim([1,9])
+        ax.yaxis.grid(True,linestyle='--',which='major',color='grey',alpha=0.25)
+        ax.xaxis.grid(True,linestyle='--',which='major',color='grey',alpha=0.25)
+        ax.tick_params(which='both',direction='in')
+
+        ax.legend(loc='lower right',fontsize=label_fontsize)#,labelcolor='black')
+        plt.tight_layout()
 
 
 def calculate_occurances(folder_name,paths,limits=20):

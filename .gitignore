@@ -46,9 +46,9 @@ path_files/
 *.csv
 *.txt
 global_analysis/
-*.egg-info/
-build/
-dist/
+Data/
+docs/
+exafs.egg-info/
 
 # Python Related #
 #####################
@@ -56,3 +56,10 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints
 exafs/bin
+build/
+dist/
+gui/test_feff/
+vscode/
+# Submodules #
+#####################
+contrib/
