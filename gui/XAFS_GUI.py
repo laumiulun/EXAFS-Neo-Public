@@ -19,6 +19,7 @@ from threading import Thread
 import tkinter as tk
 from tkinter import ttk,Tk,N,W,E,S,StringVar,IntVar,DoubleVar,BooleanVar,Checkbutton,NORMAL,DISABLED,filedialog,messagebox,PhotoImage,LabelFrame,scrolledtext
 from tkinter.font import Font
+import ast
 
 from psutil import cpu_count
 os.environ['NUMEXPR_MAX_THREADS'] = str(cpu_count())
@@ -40,7 +41,8 @@ from Analysis_plot import Analysis_Plot
 from feff_folder_larch import *
 from Console import Console
 from Misc_Function import *
-import ast
+
+
 class App():
     """
     Start of the applications
@@ -77,6 +79,9 @@ class App():
         self.initialize_tab()
         self.Build_tabs()
 
+        # Initalize sabcor
+        check_sabcor_folder(self.os)
+
     def initialize_var(self):
         """
         Initalize all possible variables in the gui.
@@ -90,6 +95,7 @@ class App():
         self.ncomp = IntVar(self.root,'0') # Number of compounds
         self.feff_file = StringVar(self.root,'Please choose a directory')
         self.series = BooleanVar(self.root,'False')
+
         # Populations
         self.populations = IntVar(self.root,1000)
         self.num_gen = IntVar(self.root,100)
@@ -120,13 +126,18 @@ class App():
         self.bkg_kw = DoubleVar(self.root, 1.0)
         self.bkg_kmax = DoubleVar(self.root, 15)
 
-        #Outputs
+        # Outputs
         self.print_graph = BooleanVar(self.root, False)
         self.num_output_paths = BooleanVar(self.root, True)
         self.steady_state_exit = BooleanVar(self.root, True)
 
         # Pertubutuions
         self.n_ini = IntVar(self.root,100)
+
+        # Sabcor initalizes variables
+        self.sabcor_input_file = StringVar(self.root,'Please choose a file')
+        self.sabcor_toggle = BooleanVar(self.root,False)
+
 
     def initialize_tab(self):
         """
@@ -280,10 +291,26 @@ class App():
         # print(command)
         self.terminal = Console(self.txtbox,command)
         """
-        self.Write_ini('test_temp.i')
         self.stop_term()
 
         # command = 'exafs -i test_temp.i'
+        if self.sabcor_toggle.get() == True:
+            # excut_path = check_executable()
+            import sabcor
+            execut_path = Path.cwd().parent / 'contrib/sabcor/bin/sabcor'
+            sabcor.check_executable(paths=execut_path)
+            # print(self.sabcor_input_file.get())
+            params = sabcor.read_sab(self.sabcor_input_file.get())
+            sabcor.write_sab(params)
+            print(self.data_file.get())
+
+            sabcor.call_executable(execut_path,self.data_file.get())
+            sabcor.edited_final_header(self.data_file.get())
+            post_sabcor_file = os.path.splitext(self.data_file.get())
+            self.data_file.set(post_sabcor_file[0] + "_sac" + post_sabcor_file[1])
+
+        self.Write_ini('test_temp.i')
+
         command = ['exafs','-i',file]
         if self.os == 'Windows':
             print(' '.join(command))
@@ -294,7 +321,10 @@ class App():
     def run_ini(self,file = 'test_temp.i'):
 
         command = ['exafs','-i',file]
-        self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
+        if self.os == 'Windows':
+            self.proc = subprocess.Popen("call " + ' '.join(command),shell=True)
+        else:
+            self.proc = subprocess.Popen("exec " + ' '.join(command),shell=True)
         self.proc.wait()
 
     def Build_global(self):
@@ -1034,6 +1064,7 @@ class App():
                 command=run_analysis, style='my.TButton')
         button_Run_Analysis.grid(column=0, row=2,columnspan=4, sticky=W+E,padx=self.padx,pady=self.pady)
 
+
         button_plot_kR = ttk.Button(self.tab_Analysis,text="Plot K and R Spectrum",
                 command=analysis_plot.plot_k_r_space, style='my.TButton')
         button_plot_kR.grid(column=0, row=3,columnspan=1, sticky=W+E,padx=self.padx,pady=self.pady)
@@ -1053,12 +1084,56 @@ class App():
         button_plot_occurances.grid(column=3,row=3,columnspan=1,sticky=W+E,padx=self.padx,pady=self.pady)
 
     def Build_expert_tab(self):
-        arr_muts = ["Override Num Compounds"]
-        self.description_tabs(arr_muts,self.tab_Expert)
+
+        def select_sabcor_file():
+            os.chdir("..") #change the working directory from gui to EXAFS
+            file_name =  filedialog.askopenfilename(initialdir = os.getcwd(), title = "Choose Sabcor Input File", filetypes = (("inp file","*.inp"),("all files","*.*")))
+            if not file_name:
+                self.sabcor_input_file.set('Please choose a file')
+            else:
+                self.sabcor_input_file.set(file_name)
+            os.chdir("gui")
+
+        def checkbox_sabcor():
+            if self.sabcor_toggle.get() == True:
+                sabcor_input_file.config(state='normal')
+                button_sabcor_input_file.config(state='normal')
+                # allow only single entry
+                self.ncomp.set(1)
+                entry_ncomp.config(state='disabled')
+
+            else:
+                sabcor_input_file.config(state='disabled')
+                button_sabcor_input_file.config(state='disabled')
+                entry_ncomp.config(state='normal')
+
+
+        arr_expert = ["Override Num Compounds","Sabcor Toggle","Sabcor Input File"]
+        self.description_tabs(arr_expert,self.tab_Expert,row=[0,2,3])
+
+        self.tab_Expert.grid_columnconfigure(1,weight=1)
 
         ncomp_list = list(range(1,101))
         entry_ncomp = ttk.Combobox(self.tab_Expert, width=7, values=ncomp_list,textvariable=self.ncomp, font=self.entryFont)
         entry_ncomp.grid(column=1, row=0, sticky=(W, E),padx=self.padx)
+
+        separator = ttk.Separator(self.tab_Expert, orient='horizontal')
+        separator.grid(column=0, row=1,columnspan=4,sticky=W+E,padx=self.padx)
+
+        sabcor_toggle = ttk.Checkbutton(self.tab_Expert,
+            variable = self.sabcor_toggle,command=checkbox_sabcor)
+        sabcor_toggle.grid(column=1,row=2,sticky=(W, E),padx=self.padx)
+        if self.os == "Windows":
+            sabcor_toggle.configure(state='disabled')
+
+        sabcor_input_file = tk.Entry(self.tab_Expert,textvariable=self.sabcor_input_file,font=self.entryFont)
+        sabcor_input_file.grid(column=1,row=3,sticky=(W,E),padx=self.padx,pady=self.pady)
+        sabcor_input_file.config(state='disabled')
+
+        button_sabcor_input_file = ttk.Button(self.tab_Expert,text="Choose",
+                command=select_sabcor_file, style='my.TButton')
+        button_sabcor_input_file.grid(column=3, row=3, sticky=W,padx=self.padx,pady=self.pady)
+        button_sabcor_input_file.config(state='disabled')
 
 
     def On_closing(self):

@@ -1,6 +1,6 @@
 # EXAFS Neo
-#### Versions: 0.9.8
-#### Last update: Sep 02, 2021
+#### Versions: 0.9.9
+#### Last update: May 15, 2023
 
 <!-- ![example workflow](https://github.com/laumiulun/EXAFS_Neo/actions/workflows/<WORKFLOW_FILE>/badge.svg) -->
 
@@ -9,46 +9,32 @@
 EXAFS Neo utilize Genetic algorithm in fitting Extended X-ray absorption fine structure(EXAFS).
 
 ## Prerequisites
+
 It is highly recommend to utilize `anaconda` or `pip` package managers to prevent unforeseen dependency conflicts. EXAFS Neo uses [`larch`](https://xraypy.github.io/xraylarch/) to process the x-ray spectrum.
 
-  - Python: 3.x
-  - Numpy: 1.17.2
-  - Larch: >0.9.47
-  - Matplotlib: 3.1.2
+- Python: => 3.9
+- Numpy: => 1.20
+- Scipy: => 1.6
+- Larch: > 0.9.47
+- Matplotlib: > 3.0
 
-It is highly recommend to create a new environment in `anaconda` to run EXAFS Neo to prevent packages conflicts. For `Windows` operating system, if you encounter a issue requiring "Microsoft C++ 14.0 or greater is needed", please download the tools at the following location [`C++ Tools`](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure to select C++ build tools during installation process. Click downloads, then go to Visual Studio 2022. Download Community.
 
+It is highly recommend to create a new environment in `anaconda` to run EXAFS Neo to prevent packages conflicts. For `Windows` operating system, if you encounter a issue requiring "Microsoft C++ 14.0 or greater is needed", please download the tools at the following location [`C++ Tools`](https://visualstudio.microsoft.com/visual-cpp-build-tools/) and make sure to select C++ build tools during installation process.
 
-        # Create new environment
-        conda config --add channels conda-forge
-        conda create -n exafs python=3.7
+if you are on a Mac (either Intel or M1), you need to make sure that xcode command line tools is install, if not input this command into terminal:
+
+        xcode-select --install
+
+## Dependencies
+
+EXAFS Neo requires the following dependencies to run:
+
+        # Create new anaconda environment
+        conda create -y --name exafs python=>3.9.10
         conda activate exafs
-
-        # Install Conda Dependencies
-        conda install -y "numpy=>1.20" "scipy=>1.5" "matplotlib=>3.0" scikit-learn pandas
-        conda install -y pyparsing pytest pytest-cov coverage
-        conda install -y h5py pillow  sqlalchemy psutil pyyaml
-        conda install -y psycopg2-binary numdifftools emcee
-        conda install -y wxpython
-        conda install -y pymatgen
-        conda install -y cython
-
-        # Install lmfits and Xraylarch using Pip
-        pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
-        pip install xraylarch==0.9.58
-        
-        # Create the larch desktop icons
-        larch -m 
-        
-        # Run larch to test
-        larch
-        
-        # Exit larch after successfully running on the command line
-        exit
-        
-        
-        #If necessary install git (We think this is Windows only)
-        conda install git
+        conda install -y "numpy=>1.20" "scipy=>1.6" "matplotlib=>3.0" scikit-learn pandas
+        conda install -y -c conda-forge wxpython pymatgen tomopy pycifrw
+        pip install xraylarch
 
 
 ## Installations
@@ -56,9 +42,11 @@ To install EXAFS Neo, simply clone the repo:
 
         git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
         cd EXAFS-Neo-Public/
+        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
+        cd EXAFS-Neo-Public/
         python setup.py install
 
-## Usage:
+## Usage
 To run a sample test, make sure the environment is set correctly, and select a input file:
 
         exafs -i test/test.ini
@@ -77,7 +65,8 @@ EXAFS also provides a internal option to perform self-adsorption on the sample f
         git submodule update --init --recursive
         cd contrib/sabcor/
         make
-## Update:
+
+## Update
 EXAFS Neo is under active development, to update the code after pulling from the repository:
 
         git pull --rebase
@@ -102,6 +91,6 @@ You can see a list of video demonstrations of the EXAFS Neo package presented, f
 - [University of Washington](https://youtu.be/KwhItvwhapg) (Feb 15, 2021)
 - [Canadian Light Source](https://youtu.be/jqISqq_FFR8) (Dec 10, 2020)
 
-## Citation:
+## Citation
 
 Jeff Terry, Miu Lun Lau, Jiateng Sun, Chang Xu, Bryan Hendricks, Julia Kise, Mrinalini Lnu, Sanchayni Bagade, Shail Shah, Priyanka Makhijani, Adithya Karantha, Travis Boltz, Max Oellien, Matthew Adas, Shlomo Argamon, Min Long, and Donna Post Guillen, “Analysis of Extended X-ray Absorption Fine Structure (EXAFS) Data Using Artificial Intelligence Techniques,” Applied Surface Science 547, 149059 https://doi.org/10.1016/j.apsusc.2021.149059 (2021).

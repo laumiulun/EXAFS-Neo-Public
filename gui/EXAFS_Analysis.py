@@ -16,7 +16,6 @@ from scipy.integrate import simps
 import re
 import fnmatch
 
-
 def sort_fold_list(dirs):
     fold_list = list_dirs(dirs)
     fold_list.sort(key=natural_keys)
@@ -38,8 +37,74 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
+def calculate_occurances(folder_name: str,paths,limits=20.0):
+    """Calculate Occurances plot
+
+    Args:
+        folder_name (str): Folder name
+        paths (list): path list
+        limits (float, optional): limit parameters. Defaults to 20.
+    """
+    def compute_log_files(folder,og_paths):
+        # calculate the number of log for each path optimizaiton
+        files = []
+        for r, d, f in os.walk(folder):
+            f.sort(key = natural_keys)
+            for file in f:
+                # if re.search('test_\d+_data.csv',file):
+                if fnmatch.fnmatch(file,'*.log'):
+                    files.append(os.path.join(r, file))
+
+        occ_list = np.zeros(len(og_paths))
+        # print(og_paths)
+        for i in range(len(files)):
+            with open(files[i]) as f:
+                for line in f:
+                    if 'New Paths:' in line:
+                        temp_str = []
+                        list_str = line[12:-2].split(',')
+                        # print(list_str)
+                        for i in range(len(list_str)):
+                            # temp_str.append(list_str[i][1:-1])
+                            temp_str.append(int(list_str[i].replace("'","")))
+                        # print(temp_str)
+                        for i,cur_path in enumerate(temp_str):
+                            for j,og_path in enumerate(og_paths):
+                                # print(i,cur_path)
+                                if cur_path == og_path:
+                                    occ_list[j] +=1
+
+        return occ_list,len(files)
+    occ_list,nfiles = compute_log_files(folder_name,paths)
+    j2 = np.argwhere(occ_list/nfiles > limits)
+    # print(repr(j2.flatten()+1))
+    return occ_list
+
+def plot_occ_list(folder_name: str,limits:int,paths,fig_gui=None):
+    """Plot Occurances list
+
+    Args:
+        folder_name (str): folder name
+        limits (float): limit parameters, default is 20
+        paths (list): _description_
+        fig_gui (fig, optional): _description_. Defaults to None.
+    """
+    occ_list = calculate_occurances(folder_name,paths,limits)
+    if fig_gui == None:
+        plt.figure(figsize=(8,5))
+        plt.xticks(paths);
+        plt.bar(paths,occ_list)
+    else:
+        ax = fig_gui.add_subplot(111)
+        # ax.xticks
+        ax.set_xticks(paths)
+        # ax.set_xticklabels(self.label,rotation=70)
+        ax.bar(paths,occ_list)
+        fig_gui.tight_layout()
+
+
 class EXAFS_Analysis:
-    r"""
+    """
     Set up analysis of EXAFS dataset
 
     Inputs:
@@ -67,6 +132,12 @@ class EXAFS_Analysis:
             self.series_index = self.params['series_index']
 
     def read_optimize_paths(self,files_opt):
+        """
+        Read optimize paths
+
+        Args:
+            files_opt (file): optimized paths
+        """
         optimize_path = []
         for i in range(len(files_opt)):
             # print(files_opt[i])
@@ -84,7 +155,7 @@ class EXAFS_Analysis:
         # print(optimize_path)
         self.optimize_path = optimize_path
 
-    def read_result_files(self,folder,series=False,series_index=None):
+    def read_result_files(self,folder,series=False,series_index=None,verbose=False):
         """
         read result files (helper function)
 
@@ -126,7 +197,8 @@ class EXAFS_Analysis:
         else:
             self.params['individual'] = True
             files.append(folder)
-        print(folder)
+        if verbose:
+            print(folder)
         files.sort(key=natural_keys)
         if self.params['optimize'] == True:
             files_opt.sort(key=natural_keys)
@@ -159,20 +231,17 @@ class EXAFS_Analysis:
                 pass
 
         return full_mat,best_full_mat
-
     def extract_data(self,data=None):
         r"""
         Extract data value using array data
         """
         if data == None:
-            full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index)
+            full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index,verbose=verbose)
         bestFit,err = self.construct_bestfit_err_mat(full_mat,bestfit_full_mat,self.paths)
-        print(self.params['individual'])
-        
         if self.params['individual']:
             best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
         else:
-            best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
+            best_Fit = np.mean(bestfit_full_mat,axis=0).reshape(-1,4).round(6)
 
         print(best_Fit)
         self.bestFit = bestFit
@@ -180,7 +249,7 @@ class EXAFS_Analysis:
         self.bestFit_mat = best_Fit
 
     def larch_init(self):
-        r"""
+        """
         Initialize larch helper function in the background
         """
         csv_path = os.path.join(self.params['base'],self.params['CSV'])
@@ -194,33 +263,41 @@ class EXAFS_Analysis:
         self.kweight = params['kweight']
         self.mylarch = mylarch
 
-    def larch_score(self,return_r=False):
-        r"""
-        Calculate fitness score based on Chi and ChiR
+    def larch_score(self,verbose=True):
         """
-        path,yTotal,best,loss,best_Fit_r,arr= larch_score.fitness(self.exp,self.bestFit_mat,self.paths,self.params,return_r=True);
-        self.return_str += arr
+        Calculate fitness score based on Chi and ChiR
 
+        Args:
+            verbose (bool, optional): if verbose output. Defaults to True.
+        """
+
+        path,yTotal,best,loss,best_Fit_r,arr= larch_score.fitness(self.exp,self.bestFit_mat,self.paths,self.params,return_r=True,verbose=verbose)
+        self.return_str += arr
 
         chir2 = (loss/(len(self.intervalK)-self.num_params)).round(6)
 
-        self.return_str += "Fitness Score (Chi2): " + str(np.round(loss,6)) + "\n"
-        self.return_str += "Fitness Score (ChiR2): " + str(np.round(chir2,6)) + "\n"
-        # print('Fitness Score (Chi2):',loss.round(6))
-        # print('Fitness Score (ChiR2):',chir2)
+        if verbose:
+            print(f"Fitness Score (Chi2): {np.round(loss,6)}")
+            print(f"Fitness Score (ChiR2): {np.round(chir2,6)}")
 
         self.path = path
         self.yTotal = yTotal
         self.best = best
         self.loss = loss
         self.chir2 = chir2
-        self.best_Fit_r = np.array(best_Fit_r)
-        print(self.return_str)
+        self.best_Fit_r = best_Fit_r
 
-    def plot(self,title='Test',fig_gui=None,show=False):
+
+    def plot(self,title='Test',fig_gui=None):
         r"""
         Plot the K and R Space
+
+        Args:
+            title (str, optional): Title of the plot. Defaults to 'Test'.
+            fig_gui (pyplot, optional): Matplotlib gui for passing in. Defaults to None.
+            show (bool, optional): if showing. Defaults to False.
         """
+
         SMALL = self.small
         BIG = self.big
 
@@ -259,13 +336,19 @@ class EXAFS_Analysis:
 
 
     def construct_latex_table(self,print_table=False):
-        r"""
-        Construct simple latex table
+        """
+        Construct latex table
+
+        Args:
+            print_table (bool, optional): print the table. Defaults to False.
+
 
         Todo:
-        Change this from printout to files instead.
+            Change this from printout to files instead.
         """
+
         err_full = larch_score.construct_full_err(self.err)
+        print(self.best_Fit_r)
         nleg_arr,label_arr,latex_table_str =larch_score.latex_table(self.paths,self.best_Fit_r,err_full)
 
         self.nleg_arr = nleg_arr
@@ -275,14 +358,27 @@ class EXAFS_Analysis:
             print(self.latex_table_str)
 
     def individual_fit(self,plot=False,fig_gui=None):
-        r"""
-        Perform fittness calculation separately for each paths
         """
-        # path,yTotal,best,loss,export_paths=larch_score.fitness_individal(self.exp,self.best_Fit,self.paths,self.params,export=True,plot=True)
-        path,yTotal,best,loss,export_paths = larch_score.fitness_individal(self.exp,self.bestFit_mat,self.paths,self.params,export=True,plot=plot,fig_gui=fig_gui)
+        Perform fitness calculation separately for each paths for r space
+
+        Args:
+            plot (bool, optional): plotting. Defaults to False.
+            fig_gui (_type_, optional): supplement gui for plotting in other windows. Defaults to None.
+        """
+
+        # path,yTotal,best,loss,export_paths=larch_score.fitness_individual(self.exp,self.best_Fit,self.paths,self.params,export=True,plot=True)
+        path,yTotal,best,loss,export_paths = larch_score.fitness_individual(self.exp,self.bestFit_mat,self.paths,self.params,export=True,plot=plot,fig_gui=fig_gui)
         self.ind_export_paths = export_paths
 
     def write_latex_csv(self,file_name=''):
+        """
+        Write latex table to csv file
+
+        Args:
+            file_name (str, optional): filename for csv. Defaults to ''.
+        """
+
+        # check if attributes exists first.
         if hasattr('self','latex_table_str'):
             print('Attribute Exists')
         else:
@@ -292,6 +388,12 @@ class EXAFS_Analysis:
                 write_file.write(self.latex_table_str)
 
     def get_data(self):
+        """
+        Get the data for plotting
+
+        Returns:
+            tuple: (data_x, data_y, model_x, model_y),error_full
+        """
         SMALL = self.small
         BIG = self.big
         data_x = self.g.k[SMALL:BIG]
@@ -304,17 +406,19 @@ class EXAFS_Analysis:
 
 
     def export_files(self,header='test',dirs='',igor_true = False):
-        r"""
-        Export files to their corresponding spots:
+        """Export files to their corresponding spots:
 
-        Inputs:
-            header (str): header for the file_name
-            dirs (str): path locations for the files
+        Args:
+            header (str, optional): header file. Defaults to 'test'.
+            dirs (str, optional): path location for files. Defaults to ''.
+            igor_true (bool, optional): if igor plotting. Defaults to False.
 
         Todo:
             Removed one of the files since it is plotted directly using latex
             function
+
         """
+
         file_name_k = os.path.join(dirs,'bestFit_' + header + '.csv')
         file_name_best = os.path.join(dirs,header + '_bestFit_err.csv')
         file_name_ind = os.path.join(dirs,'Individual_Fit_' + header + '.csv')
@@ -405,19 +509,17 @@ class EXAFS_Analysis:
                 print(i+1,contrib_p[i].round(3),contrib_ap[i].round(3))
         #print(total)
         new_path = (np.argwhere(np.array(contrib_ap) >= number)).flatten()+1
-        print("New Paths")
+        print("New Paths:")
         print(new_path)
         plt.bar(np.arange(self.num_paths),height= contrib_ap)
         plt.xticks(np.arange(self.num_paths),self.flat_paths)
-        # plt.ylim([0,100])
-        # print(new_path)
-    def export_igor_individual(self,file_paths='export_ind.ipf'):
-        r"""
-        export files in igor plotting for individuals, must be ran after
-        the indiviudal methods
 
-        Input:
-            file_paths (str): locations for the igor plot script
+    def export_igor_individual(self,file_paths='export_ind.ipf'):
+        """ Export files in igor plotting for individuals, must be ran after
+        the individual methods
+
+        Args:
+            file_paths (str, optional): location for igor plot script. Defaults to 'export_ind.ipf'.
         """
         # Displace all data
         f = open(file_paths,"w")
@@ -498,7 +600,7 @@ class EXAFS_Analysis:
         full_paths = larch_score.flatten_2d_list(self.paths)
         x = np.linspace(0,1,len(full_paths))
         color = [color_map(i) for i in x]
-        test = 65535;
+        test = 65535
         for i in range(len(color)):
             color[i] = (int(test*color[i][0]),int(test*color[i][1]),int(test*color[i][2]))
         # Change to X and Y for data
@@ -507,11 +609,15 @@ class EXAFS_Analysis:
             f.write('•ModifyGraph rgb(path_' + str(full_paths[i]) + '_' + self.header + '_chi2)=' + str(color[i]))
             f.write('\n')
 
-    def jet_r(self,x):
+    @staticmethod
+    def jet_r(x):
 
         return plt.cm.jet_r(x)
 
+
     def stacks_plot(self):
+        """Generate stack plot
+        """
         # print(self.num_paths)
         # get the array size first:
         self.best.k = self.ind_export_paths[0,:]
@@ -531,15 +637,22 @@ class EXAFS_Analysis:
             y_tot += self.best.chir_mag
             # print(len(self.best.chir_mag))
         x = self.best.r
+        # print(y_arr)
+        # print(x.shape)
+        # print(y_arr.shape)
+        # print(y_arr.shape)
+        plt.figure()
+        plt.plot(x,y_tot)
+        plt.figure()
+        plt.stackplot(x,y_arr,labels=np.arange(1,self.num_paths+1))
+        plt.legend()
 
-    
+
         plt.rc('font',size=11)
         rc = {"font.family" : "serif",
             "mathtext.fontset" : "stix"}
         plt.rcParams.update(rc)
         plt.rcParams["font.serif"] = ["Times New Roman"] + plt.rcParams["font.serif"]
-
-
 
         figsize = (10,7)
         linewidth = 1.0
@@ -564,54 +677,3 @@ class EXAFS_Analysis:
         ax.legend(loc='lower right',fontsize=label_fontsize)#,labelcolor='black')
         plt.tight_layout()
 
-
-def calculate_occurances(folder_name,paths,limits=20):
-    def compute_log_files(folder,og_paths):
-        # calculate the number of log for each path optimizaiton
-        files = []
-        for r, d, f in os.walk(folder):
-            f.sort(key = natural_keys)
-            for file in f:
-                # if re.search('test_\d+_data.csv',file):
-                if fnmatch.fnmatch(file,'*.log'):
-                    files.append(os.path.join(r, file))
-
-        occ_list = np.zeros(len(og_paths))
-        # print(og_paths)
-        for i in range(len(files)):
-            with open(files[i]) as f:
-                for line in f:
-                    if 'New Paths:' in line:
-                        temp_str = []
-                        list_str = line[12:-2].split(',')
-                        # print(list_str)
-                        for i in range(len(list_str)):
-                            # temp_str.append(list_str[i][1:-1])
-                            temp_str.append(int(list_str[i].replace("'","")))
-                        # print(temp_str)
-                        for i,cur_path in enumerate(temp_str):
-                            for j,og_path in enumerate(og_paths):
-                                # print(i,cur_path)
-                                if cur_path == og_path:
-                                    occ_list[j] +=1
-
-        return occ_list,len(files)
-    occ_list,nfiles = compute_log_files(folder_name,paths)
-    j2 = np.argwhere(occ_list/nfiles > limits)
-    # print(repr(j2.flatten()+1))
-    return occ_list
-
-def plot_occ_list(folder_name,limits,paths,fig_gui=None):
-
-    occ_list = calculate_occurances(folder_name,paths,limits)
-    if fig_gui == None:
-        plt.figure(figsize=(8,5))
-        plt.xticks(paths);
-        plt.bar(paths,occ_list)
-    else:
-        ax = fig_gui.add_subplot(111)
-        # ax.xticks
-        ax.set_xticks(paths)
-        # ax.set_xticklabels(self.label,rotation=70)
-        ax.bar(paths,occ_list)
-        fig_gui.tight_layout()
