@@ -9,7 +9,7 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: ['3.9', '3.10','3.11']
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python from Miniconda
@@ -22,15 +22,19 @@ jobs:
         printenv
         conda config --set always_yes yes --set changeps1 no
         conda config --add channels conda-forge
-        conda install python=${{ matrix.python-version }} numpy scipy matplotlib h5py pip setuptools pyparsing pytest pytest-cov coverage scikit-learn cython pillow pandas sqlalchemy psutil pyyaml psycopg2-binary numdifftools emcee pymatgen tomopy wxpython importlib_metadata
+        conda install mamba
+        mamba install python=${{ matrix.python-version }}
+        mamba install -y "numpy=>1.20" "scipy=>1.6" "matplotlib=>3.0" scikit-learn pandas
+        mamba install -y -c conda-forge wxpython pymatgen tomopy pycifrw
         conda info -a
         conda list
     - name: Install xraylarch and other dependencies with pip
       run: |
         printenv
-        pip install wxmplot wxutils
-        pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb
-        python setup.py install
+        pip install xraylarch
     - name: Run test suite
       run: |
-        ./run_test
+        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
+        cd EXAFS-Neo-Public
+        python setup.py install
+        python -m unittest discover -s tests -v

@@ -1,4 +1,4 @@
-name: Test with Ubuntu, Miniconda
+name: Test with Ubuntu, Mamba
 
 on: [push]
 
@@ -9,45 +9,33 @@ jobs:
       max-parallel: 5
       fail-fast: false
       matrix:
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.8', '3.9', '3.10', '3.11']
     defaults:
       run:
         shell: bash -l {0}
     steps:
     - uses: actions/checkout@v2
-    - name: Install X system libraries for 3.7
-      if: ${{ matrix.python-version == '3.7'}}
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libxxf86vm1 libgtk2.0 libgtk2.0-dev
-    - name: Set up Python from Miniconda
+    - name: Set up Python from Miniconda/mamba
       uses: conda-incubator/setup-miniconda@v2
       with:
         miniconda-version: latest
+        mamba-version: "*"
+        channels: conda-forge,defaults
+        channel-priority: true
+        activate-environment: anaconda-client-env
         python-version: ${{ matrix.python-version }}
-    - name: Install conda dependencies
+    - name: Install mamba dependencies
       run: |
-        # printenv
-        conda update -n base -c defaults conda
-        conda config --set always_yes true --set changeps1 true
-        conda config --add channels conda-forge
-        conda install python=${{ matrix.python-version }}
-        conda info -a
-        conda install "numpy=>1.20" "scipy=>1.5" "matplotlib=>3.0" scikit-learn pandas
-        conda install pyparsing pytest pytest-cov coverage
-        conda install h5py pillow  sqlalchemy psutil pyyaml
-        conda install psycopg2-binary numdifftools emcee
-        #conda install tomopy
-        conda install wxpython
-        conda install pymatgen
-        conda install cython
-        conda info -a
-        conda list
+        printenv
+        mamba install -y -c conda-forge python=${{ matrix.python-version }} numpy=>1.22 scipy=>1.8 matplotlib=>3.6 wxpython
+        mamba install -y -c conda-forge scikit-image scikit-learn pycifrw pandas jupyter plotly pyparsing pytest pytest-cov coverage
     - name: Install xraylarch and other dependencies with pip
       run: |
-        pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils
-        python setup.py install
+        pip install lmfit peakutils pyepics pyshortcuts termcolor sphinx dill pycifrw xraydb wxmplot wxutils fabio silx imageio charset-normalizer
+        pip install xraylarch
     - name: Run test suite
       run: |
+        git clone https://github.com/laumiulun/EXAFS-Neo-Public.git
+        cd EXAFS-Neo-Public
+        python setup.py install
         python -m unittest discover -s tests -v
-        
