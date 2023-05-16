@@ -205,8 +205,6 @@ def fitness_individual(exp, arr, full_paths, params, plot=False, export=False, f
             paths = full_paths
 
         print(paths)
-
-        print(paths)
         for j in range(len(paths)):
             if num_comp > 1:
                 filename = front[i] + str(paths[j]).zfill(4) + end

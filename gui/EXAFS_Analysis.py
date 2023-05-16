@@ -231,19 +231,22 @@ class EXAFS_Analysis:
                 pass
 
         return full_mat,best_full_mat
-    def extract_data(self,data=None):
-        r"""
+
+    def extract_data(self,data=None,verbose=True):
+        """
         Extract data value using array data
         """
         if data == None:
             full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index,verbose=verbose)
         bestFit,err = self.construct_bestfit_err_mat(full_mat,bestfit_full_mat,self.paths)
+
         if self.params['individual']:
             best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
         else:
-            best_Fit = np.mean(bestfit_full_mat,axis=0).reshape(-1,4).round(6)
-
-        print(best_Fit)
+            best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
+        if verbose:
+            print(f"Individual Path: {self.params['individual']}")
+            print(best_Fit)
         self.bestFit = bestFit
         self.err = err
         self.bestFit_mat = best_Fit
@@ -288,8 +291,8 @@ class EXAFS_Analysis:
         self.best_Fit_r = best_Fit_r
 
 
-    def plot(self,title='Test',fig_gui=None):
-        r"""
+    def plot(self,title='Temp',fig_gui=None,show=False):
+        """
         Plot the K and R Space
 
         Args:
@@ -637,15 +640,6 @@ class EXAFS_Analysis:
             y_tot += self.best.chir_mag
             # print(len(self.best.chir_mag))
         x = self.best.r
-        # print(y_arr)
-        # print(x.shape)
-        # print(y_arr.shape)
-        # print(y_arr.shape)
-        plt.figure()
-        plt.plot(x,y_tot)
-        plt.figure()
-        plt.stackplot(x,y_arr,labels=np.arange(1,self.num_paths+1))
-        plt.legend()
 
 
         plt.rc('font',size=11)
