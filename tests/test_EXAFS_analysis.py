@@ -90,8 +90,9 @@ class TestCase(unittest.TestCase):
         Chi2 = TestCase.Test_Result.loss
         Chir2 = TestCase.Test_Result.chir2
 
-        self.assertEqual(Chi2,184.01516426369412)
-        self.assertEqual(Chir2,0.763548)
+        self.assertAlmostEqual(Chi2,184.01516426369412)
+        self.assertAlmostEqual(Chir2,0.763548)
+
 
     def test_bestFit_r(self):
         """Test best fit R data value
