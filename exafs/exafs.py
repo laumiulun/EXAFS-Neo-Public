@@ -952,7 +952,7 @@ class EXAFS_GA:
             f"{bcolors.BOLD}Individual Path{bcolors.ENDC}: {self.ind_options}")
         self.logger.info(
             f"{bcolors.BOLD}Num Path{bcolors.ENDC}: {self.npaths}")
-        self.logger.info(f"{bcolors.BOLD}Paths {bcolors.ENDC}: {list(map(int,self.path_lists))}")
+        # self.logger.info(f"{bcolors.BOLD}Paths {bcolors.ENDC}: {list(map(int,self.path_lists))}")
         self.logger.info(
             f"{bcolors.BOLD}Path Optimize{bcolors.ENDC}: {self.path_optimize}")
         self.logger.info(
