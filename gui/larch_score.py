@@ -319,9 +319,11 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
 
     # Calculate the number of paths for each components
     sum_list = []
-    for i in range(num_comp):
-        sum_list.append(len(full_paths[i]))
-
+    if num_comp > 1:
+        for i in range(num_comp):
+            sum_list.append(len(full_paths[i]))
+    else:
+        sum_list.append(0)
     for i in range(num_comp):
         if num_comp > 1:
             paths = full_paths[i]
