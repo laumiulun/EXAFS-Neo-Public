@@ -316,6 +316,12 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
     array_str = "---------------------\n"
     if verbose:
         print(f"Number of Components: {num_comp}")
+
+    # Calculate the number of paths for each components
+    sum_list = []
+    for i in range(num_comp):
+        sum_list.append(len(full_paths[i]))
+
     for i in range(num_comp):
         if num_comp > 1:
             paths = full_paths[i]
@@ -326,12 +332,9 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
                 filename = front[i] + str(paths[j]).zfill(4) + end
             else:
                 filename = front + str(paths[j]).zfill(4) + end
-            # print(j*num_comp+1)
-            # print(i,j)
-            # print(i*num_paths + j)
-            k = 20*i + j
-            # print(k)
-            # print(filename)
+
+            k = sum_list[i] + j
+
             path = feffdat.feffpath(filename, s02=str(arr[k, 0]), e0=str(
                 arr[k, 1]), sigma2=str(arr[k, 2]), deltar=str(arr[k, 3]), _larch=mylarch)
             feffdat.path2chi(path, larch=mylarch)
