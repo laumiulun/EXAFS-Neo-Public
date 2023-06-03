@@ -474,7 +474,7 @@ class EXAFS_Analysis:
             ax = fig_gui.add_subplot(111)
             # ax.xticks
             ax.set_xticks(np.arange(len(self.full_mat_diag)))
-            ax.set_xticklabels(self.label,rotation=70)
+            # ax.set_xticklabels(self.label,rotation=70)
             ax.bar(np.arange(len(self.full_mat_diag)),np.sqrt(self.full_mat_diag))
             fig_gui.tight_layout()
 
