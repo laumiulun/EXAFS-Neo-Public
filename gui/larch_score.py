@@ -334,8 +334,8 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
                 filename = front[i] + str(paths[j]).zfill(4) + end
             else:
                 filename = front + str(paths[j]).zfill(4) + end
-
-            k = sum_list[i] + j
+            k = sum_list[i-1] + j
+            # print(i,k)
 
             path = feffdat.feffpath(filename, s02=str(arr[k, 0]), e0=str(
                 arr[k, 1]), sigma2=str(arr[k, 2]), deltar=str(arr[k, 3]), _larch=mylarch)

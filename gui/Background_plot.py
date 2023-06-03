@@ -6,7 +6,7 @@ Date       July 4, 2021
 
 Class definitions for background plots in tkinter
 """
-
+import os
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -37,6 +37,7 @@ class BKG_plot:
         Initalize the parameters
         """
         self.file = file
+        self.title = os.path.basename(self.file.get())
         self.rbkg = rbkg
         self.bkg_kw = bkg_kw
         self.bkg_kmax = bkg_kmax
@@ -103,6 +104,7 @@ class BKG_plot:
                 self.ax.legend()
                 self.ax.set_ylabel("$\mu$ (E)")
                 self.ax.set_xlabel("Energy (eV)")
+                self.ax.set_title(self.title)
                 self.fig.tight_layout()
                 self.canvas.draw()
 
@@ -119,6 +121,7 @@ class BKG_plot:
             # self.ax.plot(self.data.k[self.small:self.big],self.data.chi[self.small:self.big]*self.data.k[self.small:self.big]**2,'b',label='K Space')
             self.ax.set_xlabel('$k$ (Å$^{-1}$)')
             self.ax.set_ylabel('$k\chi(k)$')
+            self.ax.set_title(self.title)
             self.fig.tight_layout()
             self.canvas.draw()
 
@@ -136,5 +139,6 @@ class BKG_plot:
         self.ax.plot(self.data.r,self.data.chir_mag,'b',label='R Space')
         self.ax.set_xlabel('$r$ (Å$^{-1}$)')
         self.ax.set_ylabel('$\chi(r)$')
+        self.ax.set_title(self.title)
         self.fig.tight_layout()
         self.canvas.draw()

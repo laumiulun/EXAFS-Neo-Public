@@ -89,8 +89,8 @@ class App():
         Future additions starts here.
         """
         # Inputs
-        self.data_file = StringVar(self.root,'Please choose a file')
-        self.temp_data_file = StringVar(self.root,'Please choose a file')
+        self.data_file = StringVar(self.root,'Please choose file/s')
+        self.temp_data_file = StringVar(self.root,'Please choose file/s')
         self.output_file = StringVar(self.root,'Please choose a file')
         self.ncomp = IntVar(self.root,'0') # Number of compounds
         self.feff_file = StringVar(self.root,'Please choose a directory')
@@ -347,10 +347,11 @@ class App():
                                       height = 10,
                                       font="TkTextFont")
             citation.grid(column=0,row=1,sticky=N,padx=self.padx,pady=self.pady)
-            citation.configure(state ='disabled')
 
             with open('media/Citation') as f:
                 citation.insert(tk.END,f.read())
+            citation.configure(state ='disabled')
+
 
             License_Label = tk.Label(popup,text='License:',font='TkTextFont')
             License_Label.grid(column=0,row=2,sticky=N,padx=self.padx,pady=self.pady)
@@ -358,14 +359,12 @@ class App():
                                     width = 75,
                                     font = "TkTextFont")
             license.grid(column=0,row=3,sticky=N,padx=self.padx,pady=self.pady)
-            license.configure(state ='disabled')
             with open('../LICENSE') as f:
                 license.insert(tk.END,f.read())
-            B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
-            B1.grid(column=0,row=4,padx=self.padx,pady=self.pady)
+            license.configure(state ='disabled')
 
-            # popup.grid_columnconfigure((1,3),weight=1)
-            # popup.grid_rowconfigure((1,3),weight=1)
+            B1 = ttk.Button(popup, text="Close", command = popup.destroy)
+            B1.grid(column=0,row=4,padx=self.padx,pady=self.pady)
 
             popup.grid_columnconfigure((0,2),weight=1)
             popup.grid_rowconfigure((0,2),weight=1)
@@ -424,10 +423,12 @@ class App():
 
         def select_data_file():
             os.chdir("..") #change the working directory from gui to EXAFS
+
             file_name =  filedialog.askopenfilenames(initialdir = os.getcwd(), title = "Choose xmu/csv", filetypes = (("xmu files", "*.xmu"),("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.data_file.set('Please choose file/s')
                 self.temp_data_file.set('Please choose file/s')
+                os.chdir("gui")
             else:
                 if isinstance(file_name,tuple):
                     if len(file_name)==1:
@@ -439,16 +440,17 @@ class App():
                         self.data_file.set(separator.join(file_list))
                         entry_data_file['value'] = file_list
                         self.series.set(True)
-            os.chdir("gui")
+                os.chdir("gui")
 
         def select_output_file():
             os.chdir("..") #change the working directory from gui to EXAFS
             file_name =  filedialog.asksaveasfilename(initialdir = os.getcwd(), title = "Choose data_file", filetypes = (("csv files","*.csv"),("all files","*.*")))
             if not file_name:
                 self.output_file.set('Please choose a file')
+                os.chdir("gui")
             else:
                 self.output_file.set(file_name)
-            os.chdir("gui")
+                os.chdir("gui")
 
         def feff_trace(var,indx,mode):
             # Todo: Need to add assertion to make sure every folder is not normal
@@ -536,12 +538,13 @@ class App():
 
             if not folder_name:
                 var.set('Please choose a directory')
+                os.chdir("gui")
             else:
                 check_feff_folder(folder_name)
                 folder_name = os.path.join(folder_name,'feff')
                 var.set(folder_name)
 
-            os.chdir("gui")
+                os.chdir("gui")
 
         # add trace back
         self.ncomp.trace_add('write',gen_feff_folder)
@@ -791,6 +794,26 @@ class App():
         def button_bkg_draw():
             # TODO:
                 # Makes it so
+            if self.sabcor_toggle.get() == True:
+                base_name = os.path.basename(self.temp_data_file.get())
+                base_filename = base_name.split('.')
+                # Check if sac is in:
+                if "_sac" not in base_filename[0]:
+                    import sabcor
+                    execut_path = Path.cwd().parent / 'contrib/sabcor/bin/sabcor'
+                    sabcor.check_executable(paths=execut_path)
+                    params = sabcor.read_sab(self.sabcor_input_file.get())
+                    sabcor.write_sab(params)
+                    print(self.data_file.get())
+
+                    sabcor.call_executable(execut_path,self.data_file.get())
+                    sabcor.edited_final_header(self.data_file.get())
+                    post_sabcor_file = os.path.splitext(self.data_file.get())
+                    # self.data_file.set(post_sabcor_file[0] + "_sac" + post_sabcor_file[1])
+                    self.temp_data_file.set(post_sabcor_file[0] + "_sac" + post_sabcor_file[1])
+
+
+                # Check if the temp data file contains any sac_
             bkg_plot.inital_parameters(self.temp_data_file,self.r_bkg,self.bkg_kw,self.bkg_kmax,self.kmin,self.kmax,self.delta_k,self.k_weight)
             bkg_plot.draw_background()
 
@@ -989,11 +1012,12 @@ class App():
             folder_name = filedialog.askdirectory(initialdir = os.getcwd(), title = "Select folder")
             if not folder_name:
                 analysis_folder.set('Please choose a directory')
+                os.chdir("gui")
             else:
                 # folder_name = os.path.join(folder_name,'feff')
                 analysis_folder.set(folder_name)
             # print(self.feff_file.get())
-            os.chdir("gui")
+                os.chdir("gui")
         def run_analysis():
             params = {}
             # params['base'] = Path(os.getcwd()).parent
@@ -1090,9 +1114,10 @@ class App():
             file_name =  filedialog.askopenfilename(initialdir = os.getcwd(), title = "Choose Sabcor Input File", filetypes = (("inp file","*.inp"),("all files","*.*")))
             if not file_name:
                 self.sabcor_input_file.set('Please choose a file')
+                os.chdir("gui")
             else:
                 self.sabcor_input_file.set(file_name)
-            os.chdir("gui")
+                os.chdir("gui")
 
         def checkbox_sabcor():
             if self.sabcor_toggle.get() == True:

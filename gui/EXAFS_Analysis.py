@@ -468,7 +468,7 @@ class EXAFS_Analysis:
     def plot_error(self,fig_gui=None):
         if fig_gui == None:
             plt.figure(figsize=(8,5))
-            plt.xticks(np.arange(len(self.full_mat_diag)),self.label,rotation=70);
+            # plt.xticks(np.arange(len(self.full_mat_diag)),self.label,rotation=70);
             plt.bar(np.arange(len(self.full_mat_diag)),np.sqrt(self.full_mat_diag))
         else:
             ax = fig_gui.add_subplot(111)
