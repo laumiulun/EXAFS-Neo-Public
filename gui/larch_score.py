@@ -322,6 +322,8 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
     if num_comp > 1:
         for i in range(num_comp):
             sum_list.append(len(full_paths[i]))
+        # Insert 0 at the beginning of the list
+        sum_list.insert(0,0)
     else:
         sum_list.append(0)
     for i in range(num_comp):
@@ -334,7 +336,8 @@ def fitness(exp, arr, full_paths, params, return_r=True,verbose=False) -> tuple:
                 filename = front[i] + str(paths[j]).zfill(4) + end
             else:
                 filename = front + str(paths[j]).zfill(4) + end
-            k = sum_list[i-1] + j
+            # This is not right. because then it just grab the previous iterations...
+            k = sum_list[i] + j
             # print(i,k)
 
             path = feffdat.feffpath(filename, s02=str(arr[k, 0]), e0=str(
