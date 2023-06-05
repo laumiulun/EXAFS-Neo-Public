@@ -554,6 +554,11 @@ class EXAFS_GA:
             self.verbose_graph()
 
     def verbose_graph(self, end=False):
+        """_summary_
+
+        Args:
+            end (bool, optional): _description_. Defaults to False.
+        """
         total = self.globBestFit[0].verbose_yTotal(self.intervalK)
         k_xlabel = "k ($\AA^{-1}$)"
         k_ylabel = "k$^{" + str(int(self.Kweight)) + \
@@ -802,6 +807,68 @@ class EXAFS_GA:
 
         return child
 
+    @staticmethod
+    def flatten_path(path_lists):
+        """Flatten the paths
+
+        Args:
+            path_lists (list): Path lists
+
+        Returns:
+            list: Flattened path list
+        """
+        flatlist=[]
+        for sublist in path_lists:
+            for element in sublist:
+                flatlist.append(element)
+        return flatlist
+
+    @staticmethod
+    def get_sum_path(path_lists,ncomp):
+        """Get the sum of each components
+
+        Args:
+            path_lists (list): Path lists
+            ncomp (int): Number of components
+
+        Returns:
+            list: List of sum of each components
+        """
+        sum_path = []
+        if ncomp > 1:
+            for i in range(ncomp):
+                sum_path.append(len(path_lists[i]))
+        return sum_path
+
+    @staticmethod
+    def path_optimization_multicomp(path_lists,new_path_ind,ncomp):
+        """Path optimizations for multiple components
+
+        Args:
+            path_lists (lists): Path lists
+            new_path_ind (lists): Optimize path index
+            ncomp (int): Number of components
+
+        Returns:
+            (list): Optimized path lists
+        """
+        flat_path = EXAFS_GA.flatten_path(path_lists)
+        cumsum_path = np.cumsum(EXAFS_GA.get_sum_path(path_lists,ncomp))
+
+        new_path_list = []
+        temp_path = []
+
+        k = 0
+        for i,path in enumerate(flat_path):
+            if i in new_path_ind:
+                temp_path.append(path)
+            if i+1 == cumsum_path[k]:
+                new_path_list.append(temp_path)
+                k +=1
+                temp_path = []
+
+        return new_path_list
+
     def paths_optimization_process(self):
         if timeing_mode:
             t0 = timecall()
@@ -811,6 +878,7 @@ class EXAFS_GA:
 
         arr = np.asarray(self.globBestFit[0].get())
         total = 0
+        # Contribution of each path
         contrib = []
 
         for i, (key, value) in enumerate(self.pathDictionary.items()):
@@ -825,6 +893,8 @@ class EXAFS_GA:
             area = simps(path.chir_mag, path.r)
             total += area
             contrib.append(area)
+
+        print(contrib)
         contrib_p = [i/total for i in contrib]
         new_path_ind = (np.argwhere(np.array(contrib_p) >=
                         self.path_optimize_percent)).flatten()
@@ -833,10 +903,13 @@ class EXAFS_GA:
             t1 = timecall() - t0
             self.logger.info('Path Optimization took %.2f second' % t1)
 
-        new_path = []
-        for i in new_path_ind:
-            if i in new_path_ind:
-                new_path.append(self.path_lists[i])
+        if self.ncomp > 1:
+            new_path = EXAFS_GA.path_optimization_multicomp(self.path_lists,new_path_ind,self.ncomp)
+        else:
+            new_path = []
+            for i in new_path_ind:
+                if i in new_path_ind:
+                    new_path.append(self.path_lists[i])
 
         self.path_lists = new_path
         self.ind_options = True
@@ -952,7 +1025,7 @@ class EXAFS_GA:
             f"{bcolors.BOLD}Individual Path{bcolors.ENDC}: {self.ind_options}")
         self.logger.info(
             f"{bcolors.BOLD}Num Path{bcolors.ENDC}: {self.npaths}")
-        # self.logger.info(f"{bcolors.BOLD}Paths {bcolors.ENDC}: {list(map(int,self.path_lists))}")
+        self.logger.info(f"{bcolors.BOLD}Paths {bcolors.ENDC}: {self.path_lists}")
         self.logger.info(
             f"{bcolors.BOLD}Path Optimize{bcolors.ENDC}: {self.path_optimize}")
         self.logger.info(
@@ -1002,7 +1075,8 @@ class EXAFS_GA:
         self.logger.info(
             f"{bcolors.BOLD}Final Fittness Score{bcolors.ENDC}: {self.globBestFit[1]}")
         self.logger.info("-------------------------------------------")
-        self.verbose_graph(end=True)
+        if self.printgraph:
+            self.verbose_graph()
 
     def run(self, detect_limits=False):
         """
