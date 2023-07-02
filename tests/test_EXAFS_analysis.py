@@ -1,5 +1,5 @@
 """
-Unit test for larch score
+Unit test for EXAFS Analysis
 """
 import sys
 import larch
@@ -28,7 +28,7 @@ class TestCase(unittest.TestCase):
     params['optimize'] = 'False'
     params['series_index'] = 0
     params['series'] = False
-    dirs = 'tests/cu_test_files/cu_results_2/'
+    dirs = 'tests/cu_test_files/cu_results/'
 
 
     paths = [1,2,3,5,6,10,14,16,28,30,36,40,42]
