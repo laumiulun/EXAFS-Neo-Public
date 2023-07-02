@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-sys.path.append('gui')
+sys.path.append('gui/')
 import larch_score
 
 
@@ -19,22 +19,22 @@ class Test_Larchscore(unittest.TestCase):
     # Create a different global interpetor for larch
 
     mylarch = larch.Interpreter()
-    # Default cu case testing
     params = {}
     params['base'] = Path(os.getcwd())
-    params['Kmin'] = 3.0
-    params['Kmax'] = 17.0
+    params['Kmin'] = 2.5
+    params['Kmax'] = 12.5
     params['kweight'] = 2.0
     params['deltak'] = 0.05
-    params['rbkg'] = 1.2
-    params['bkgkw'] = 1.0
-    params['bkgkmax'] = 25.0
-    params['front'] = "tests/cu_test_files/cu_paths/path_75/feff"
+    params['rbkg'] = 1.0
+    params['bkgkw'] = 2.0
+    params['bkgkmax'] = 15.0
+    params['front'] = ["tests/cu_test_files/cu_paths/path_75/feff"]
     params['CSV'] = "tests/cu_test_files/cu_paths/cu_10k.xmu"
     params['optimize'] = 'False'
     params['series_index'] = 0
     params['series'] = False
-    dirs = 'tests/cu_test_files/cu_results/'
+    dirs = 'tests/cu_test_files/cu_results_2/'
+
 
     print(params['base'])
 
