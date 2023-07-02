@@ -992,6 +992,8 @@ class EXAFS_GA:
         for i in self.Populations:
             i.set_e0(self.bestE0)
 
+        self.output_generations()
+
     def run_verbose_start(self):
         """
         Visualize the verbose start place

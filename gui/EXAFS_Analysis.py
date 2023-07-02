@@ -233,8 +233,10 @@ class EXAFS_Analysis:
         return full_mat,best_full_mat
 
     def extract_data(self,data=None,verbose=True):
-        """
-        Extract data value using array data
+       """ Extract the data
+        Args:
+            data (list, optional): if inputted data instead. Defaults to None.
+            verbose (bool, optional): verbosity. Defaults to True.
         """
         if data == None:
             full_mat,bestfit_full_mat = self.read_result_files(self.dirs,self.series,self.series_index,verbose=verbose)
@@ -243,7 +245,9 @@ class EXAFS_Analysis:
         if self.params['individual']:
             best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
         else:
-            best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
+            # best_Fit = np.mean(full_mat,axis=0).reshape(-1,4).round(6)
+            # best_Fit = full_mat[-1]
+            best_Fit = bestfit_full_mat.reshape(-1,4).round(6)
         if verbose:
             print(f"Individual Path: {self.params['individual']}")
             print(best_Fit)
