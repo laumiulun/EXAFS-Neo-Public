@@ -233,7 +233,7 @@ class EXAFS_Analysis:
         return full_mat,best_full_mat
 
     def extract_data(self,data=None,verbose=True):
-       """ Extract the data
+        """ Extract the data
         Args:
             data (list, optional): if inputted data instead. Defaults to None.
             verbose (bool, optional): verbosity. Defaults to True.
